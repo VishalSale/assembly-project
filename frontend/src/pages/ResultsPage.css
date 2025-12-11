@@ -1,0 +1,138 @@
+.results-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.results-header {
+  max-width: 1400px;
+  margin: 0 auto 30px;
+  text-align: center;
+  color: white;
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) translateX(-5px);
+}
+
+.results-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.results-count {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.results-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.voters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.error-message,
+.no-results {
+  background: white;
+  border-radius: 15px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+}
+
+.error-message {
+  border-left: 4px solid var(--danger-color);
+}
+
+.error-message p,
+.no-results p {
+  color: var(--text-light);
+  font-size: 1.1rem;
+  margin: 20px 0;
+}
+
+.error-message button,
+.no-results button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.error-message button:hover,
+.no-results button:hover {
+  background: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 768px) {
+  .results-header h1 {
+    font-size: 1.8rem;
+    margin-top: 50px;
+  }
+
+  .back-button {
+    position: static;
+    transform: none;
+    margin: 0 auto 20px;
+  }
+
+  .back-button:hover {
+    transform: translateX(-5px);
+  }
+
+  .voters-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .results-page {
+    padding: 15px;
+  }
+
+  .results-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .results-count {
+    font-size: 1rem;
+  }
+}
