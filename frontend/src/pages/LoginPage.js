@@ -27,21 +27,32 @@ const LoginPage = () => {
     setError('');
 
     try {
-      // Simple validation for demo
-      if (formData.email === 'admin@gmail.com' && formData.password === 'admin123') {
-        // Store user data in localStorage (in real app, use proper auth)
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Store user data and token in localStorage
         const userData = {
-          name: 'Admin User',
-          email: 'admin@gmail.com',
+          name: result.user.name || 'Admin User',
+          email: result.user.email,
           avatar: '/images/admin-avatar.png'
         };
         localStorage.setItem('adminUser', JSON.stringify(userData));
+        localStorage.setItem('adminToken', result.token);
         navigate('/admin/dashboard');
       } else {
-        setError('Invalid email or password');
+        setError(result.message || 'Invalid email or password');
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      console.error('Login error:', err);
+      setError('Login failed. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }

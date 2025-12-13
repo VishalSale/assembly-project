@@ -11,16 +11,35 @@ const AdminDashboard = () => {
   useEffect(() => {
     // Check if user is logged in
     const userData = localStorage.getItem('adminUser');
-    if (!userData) {
+    const token = localStorage.getItem('adminToken');
+    
+    if (!userData || !token) {
       navigate('/admin/login');
       return;
     }
     setUser(JSON.parse(userData));
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminUser');
-    navigate('/admin/login');
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      
+      // Call backend logout API
+      await fetch(`${process.env.REACT_APP_API_URL}/api/admin/logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Always clear local storage and redirect
+      localStorage.removeItem('adminUser');
+      localStorage.removeItem('adminToken');
+      navigate('/admin/login');
+    }
   };
 
   if (!user) {

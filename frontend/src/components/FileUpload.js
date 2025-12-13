@@ -57,20 +57,39 @@ const FileUpload = () => {
       const formData = new FormData();
       formData.append('csvFile', selectedFile);
 
-      // Simulate upload (replace with actual API call)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // For demo purposes, always show success
-      setUploadStatus('success');
-      setSelectedFile(null);
-      
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      // Get token from localStorage
+      const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+      const token = localStorage.getItem('adminToken');
+
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/upload-csv`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setUploadStatus('success');
+        setSelectedFile(null);
+        
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+
+        // Show detailed results
+        alert(`Upload successful!\n\nSummary:\n- Total CSV rows: ${result.data.total_rows_in_csv}\n- Processed: ${result.data.total_processed}\n- Inserted: ${result.data.inserted}\n- Updated: ${result.data.updated}\n- Errors: ${result.data.errors}\n- Skipped: ${result.data.skipped}`);
+      } else {
+        setUploadStatus('error');
+        alert(`Upload failed: ${result.message}`);
       }
     } catch (error) {
       console.error('Upload error:', error);
       setUploadStatus('error');
+      alert('Upload failed. Please check your connection and try again.');
     } finally {
       setUploading(false);
     }
