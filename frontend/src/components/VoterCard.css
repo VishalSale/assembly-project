@@ -1,7 +1,8 @@
 .voter-card {
   background: white;
-  border-radius: 16px;
-  box-shadow: var(--shadow-md);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
   overflow: hidden;
   transition: all 0.3s ease;
   animation: fadeIn 0.5s ease-out forwards;
@@ -9,12 +10,12 @@
 }
 
 .voter-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 .voter-card-header {
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  background: #2d3748;
   color: white;
   padding: 25px 20px;
   text-align: center;
@@ -24,13 +25,12 @@
 .voter-icon {
   width: 60px;
   height: 60px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 15px;
-  backdrop-filter: blur(10px);
 }
 
 .voter-icon svg {
@@ -66,19 +66,20 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--bg-light);
-  border-radius: 10px;
+  background: #f7fafc;
+  border-radius: 8px;
   transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
 }
 
 .info-item:hover {
-  background: #e0e7ff;
+  background: #edf2f7;
   transform: scale(1.02);
 }
 
 .info-icon {
   font-size: 1.5rem;
-  color: var(--primary-color);
+  color: #2d3748;
   flex-shrink: 0;
 }
 
@@ -91,7 +92,7 @@
 
 .info-label {
   font-size: 0.75rem;
-  color: var(--text-light);
+  color: #718096;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -99,7 +100,7 @@
 
 .info-value {
   font-size: 0.95rem;
-  color: var(--text-dark);
+  color: #2d3748;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -107,7 +108,7 @@
 }
 
 .voter-details {
-  border-top: 2px solid var(--border-color);
+  border-top: 1px solid #e2e8f0;
   padding-top: 20px;
   display: flex;
   flex-direction: column;
@@ -115,20 +116,20 @@
 }
 
 .detail-section {
-  background: linear-gradient(135deg, #f8f9ff 0%, #e8eaff 100%);
-  border-radius: 12px;
+  background: #f7fafc;
+  border-radius: 8px;
   padding: 15px;
-  border: 1px solid #e1e5fe;
+  border: 1px solid #e2e8f0;
 }
 
 .section-title {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: #2d3748;
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 2px solid var(--primary-color);
+  border-bottom: 2px solid #2d3748;
   padding-bottom: 5px;
 }
 
@@ -138,7 +139,7 @@
   align-items: flex-start;
   gap: 15px;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .detail-row:last-child {
@@ -164,16 +165,18 @@
 
 .voter-card-footer {
   padding: 20px;
-  background: var(--bg-light);
-  display: flex;
+  background: #f7fafc;
+  display: flex !important;
   gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .action-button {
   flex: 1;
   padding: 12px 20px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
@@ -190,25 +193,54 @@
 }
 
 .download-btn {
-  background: var(--primary-color);
+  background: #2d3748;
   color: white;
 }
 
 .download-btn:hover {
-  background: var(--secondary-color);
+  background: #1a202c;
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
 }
 
 .share-btn {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: #4a5568 !important;
+  color: white !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex: 1 !important;
 }
 
 .share-btn:hover {
-  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  background: #2d3748 !important;
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+}
+
+/* Ensure both buttons are always visible on all screen sizes */
+@media (min-width: 481px) {
+  .action-button {
+    display: flex !important;
+    flex: 1 !important;
+  }
+  
+  .action-button span {
+    display: inline !important;
+  }
+  
+  .share-btn {
+    display: flex !important;
+    visibility: visible !important;
+  }
+}
+
+/* Force share button to be visible everywhere */
+.voter-card-footer .share-btn {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: #4a5568 !important;
+  color: white !important;
+  border: none !important;
 }
 
 @media (max-width: 480px) {

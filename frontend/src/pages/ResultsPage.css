@@ -1,6 +1,6 @@
 .results-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ffffff;
   padding: 20px;
 }
 
@@ -8,8 +8,9 @@
   max-width: 1400px;
   margin: 0 auto 30px;
   text-align: center;
-  color: white;
+  color: #2d3748;
   position: relative;
+  padding: 20px 0;
 }
 
 .back-button {
@@ -17,11 +18,11 @@
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
+  background: #f7fafc;
+  color: #2d3748;
+  border: 1px solid #e2e8f0;
   padding: 12px 24px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -29,23 +30,23 @@
   align-items: center;
   gap: 8px;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
 }
 
 .back-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-50%) translateX(-5px);
+  background: #edf2f7;
+  transform: translateY(-50%) translateX(-2px);
 }
 
 .results-header h1 {
   font-size: 2.5rem;
   margin-bottom: 10px;
   font-weight: 700;
+  color: #2d3748;
 }
 
 .results-count {
   font-size: 1.2rem;
-  opacity: 0.9;
+  color: #4a5568;
 }
 
 .results-container {
@@ -62,31 +63,32 @@
 
 .error-message,
 .no-results {
-  background: white;
-  border-radius: 15px;
+  background: #ffffff;
+  border-radius: 12px;
   padding: 60px 40px;
   text-align: center;
-  box-shadow: var(--shadow-xl);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
 }
 
 .error-message {
-  border-left: 4px solid var(--danger-color);
+  border-left: 4px solid #e53e3e;
 }
 
 .error-message p,
 .no-results p {
-  color: var(--text-light);
+  color: #4a5568;
   font-size: 1.1rem;
   margin: 20px 0;
 }
 
 .error-message button,
 .no-results button {
-  background: var(--primary-color);
+  background: #2d3748;
   color: white;
   border: none;
   padding: 12px 32px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -96,9 +98,8 @@
 
 .error-message button:hover,
 .no-results button:hover {
-  background: var(--secondary-color);
+  background: #1a202c;
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
 }
 
 @media (max-width: 768px) {
@@ -114,7 +115,7 @@
   }
 
   .back-button:hover {
-    transform: translateX(-5px);
+    transform: translateX(-2px);
   }
 
   .voters-grid {

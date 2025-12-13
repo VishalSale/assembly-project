@@ -34,234 +34,182 @@ const generateShareImage = async (req, res) => {
     const firstNameEng = englishNameParts[0] || '';
     const middleNameEng = englishNameParts[1] || '';
     const surnameEng = englishNameParts.slice(2).join(' ') || '';
-    
-    const marathiNameParts = (voter.MFullName || '').split(' ');
-    const firstName = marathiNameParts[0] || '';
-    const middleName = marathiNameParts[1] || '';
-    const surname = marathiNameParts.slice(2).join(' ') || '';
 
-    // Check if poster image exists (support multiple formats)
+    // Check if poster image exists
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    let posterPath = '';
-    let posterExists = false;
-    let mimeType = '';
+    let posterBase64 = '';
     
     for (const ext of imageExtensions) {
       const testPath = path.join(__dirname, `../images/poster.${ext}`);
       if (fs.existsSync(testPath)) {
-        posterPath = testPath;
-        posterExists = true;
-        mimeType = ext === 'jpg' ? 'jpeg' : ext;
+        const posterBuffer = fs.readFileSync(testPath);
+        const mimeType = ext === 'jpg' ? 'jpeg' : ext;
+        posterBase64 = `data:image/${mimeType};base64,${posterBuffer.toString('base64')}`;
         break;
       }
     }
-    
-    let posterBase64 = '';
-    if (posterExists) {
-      const posterBuffer = fs.readFileSync(posterPath);
-      posterBase64 = `data:image/${mimeType};base64,${posterBuffer.toString('base64')}`;
-    }
 
-    // Create HTML template for share image
+    // Create slip format HTML template for sharing
     const htmlTemplate = `
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
         <style>
-            body {
-                font-family: Arial, sans-serif;
+            * {
                 margin: 0;
                 padding: 0;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                width: 800px;
-                height: 600px;
-                overflow: hidden;
                 box-sizing: border-box;
             }
-            .container {
+            
+            body {
+                font-family: Arial, sans-serif;
                 background: white;
-                margin: 20px;
-                border-radius: 20px;
-                padding: 25px;
-                width: 750px;
-                height: 550px;
-                display: flex;
-                flex-direction: column;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-                box-sizing: border-box;
+                padding: 0;
+                margin: 0;
+                color: black;
             }
-            ${posterExists ? `
-            .poster-section {
-                text-align: center;
-                margin-bottom: 15px;
-                height: 100px;
+            
+            .voter-slip {
+                width: 100%;
+                background: white;
+                border: 2px solid black;
                 overflow: hidden;
+                margin: 0;
             }
-            .poster-image {
+            
+            .poster-section {
                 width: 100%;
                 height: 100px;
-                object-fit: cover;
-                border-radius: 12px;
-                border: 2px solid #667eea;
-            }
-            ` : ''}
-            .header {
-                text-align: center;
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #667eea;
-            }
-            .title {
-                font-size: 20px;
-                font-weight: bold;
-                color: #667eea;
-                margin-bottom: 3px;
-            }
-            .subtitle {
-                font-size: 14px;
-                color: #4a5568;
-            }
-            .voter-name {
-                text-align: center;
-                margin-bottom: 15px;
-                padding: 12px;
-                background: linear-gradient(135deg, #f8f9ff, #e8eaff);
-                border-radius: 12px;
-                border: 2px solid #667eea;
-            }
-            .name-eng {
-                font-size: 22px;
-                font-weight: bold;
-                color: #2d3748;
-                margin-bottom: 3px;
-            }
-            .name-marathi {
-                font-size: 18px;
-                color: #4a5568;
-            }
-            .voter-details {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-                flex: 1;
-                min-height: 0;
-            }
-            .detail-section {
-                background: #f8f9ff;
-                padding: 12px;
-                border-radius: 10px;
-                border: 1px solid #e1e5fe;
-                display: flex;
-                flex-direction: column;
-            }
-            .section-title {
-                font-size: 14px;
-                font-weight: bold;
-                color: #667eea;
-                margin-bottom: 8px;
-                text-transform: uppercase;
-                border-bottom: 1px solid #667eea;
-                padding-bottom: 3px;
-            }
-            .detail-row {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 6px;
-                padding: 3px 0;
-                border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-            }
-            .detail-row:last-child {
-                border-bottom: none;
-            }
-            .label {
-                font-weight: bold;
-                color: #4a5568;
-                font-size: 12px;
-            }
-            .value {
-                color: #2d3748;
-                font-size: 12px;
-                font-weight: 500;
-                text-align: right;
-                max-width: 120px;
                 overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
             }
+            
+            .poster-image {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+            
+            .content-section {
+                background: white;
+            }
+            
+            .row {
+                display: flex;
+                border-bottom: 2px solid black;
+            }
+            
+            .cell {
+                padding: 8px;
+                border-right: 2px solid black;
+                flex: 1;
+                background: white;
+            }
+            
+            .cell:last-child {
+                border-right: none;
+            }
+            
+            .full-width {
+                flex: 1;
+                padding: 8px;
+                border-bottom: 2px solid black;
+                background: white;
+            }
+            
+            .label {
+                font-size: 12px;
+                font-weight: normal;
+                color: black;
+                margin-bottom: 4px;
+            }
+            
+            .value {
+                font-size: 16px;
+                font-weight: bold;
+                color: black;
+                text-transform: uppercase;
+            }
+            
+            .name-value {
+                font-size: 18px;
+                font-weight: bold;
+                color: black;
+                text-transform: uppercase;
+            }
+            
             .footer {
                 text-align: center;
-                margin-top: 10px;
-                padding-top: 8px;
-                border-top: 1px solid #e1e5fe;
-                color: #667eea;
-                font-weight: bold;
+                padding: 10px;
+                background: white;
                 font-size: 12px;
+                color: black;
+                font-weight: bold;
             }
         </style>
     </head>
     <body>
-        <div class="container">
-            ${posterExists ? `
+        <div class="voter-slip">
+            ${posterBase64 ? `
             <div class="poster-section">
                 <img src="${posterBase64}" alt="Poster" class="poster-image" />
             </div>
             ` : ''}
             
-            <div class="header">
-                <div class="title">कागल विधान सभा मतदार माहिती</div>
-                <div class="subtitle">Kagal Assembly Constituency - 2024</div>
-            </div>
-
-            <div class="voter-name">
-                <div class="name-eng">${firstNameEng} ${middleNameEng} ${surnameEng}</div>
-                <div class="name-marathi">${firstName} ${middleName} ${surname}</div>
-            </div>
-
-            <div class="voter-details">
-                <div class="detail-section">
-                    <div class="section-title">Personal Info</div>
-                    <div class="detail-row">
-                        <span class="label">EPIC:</span>
-                        <span class="value">${voter.EPIC || 'N/A'}</span>
+            <div class="content-section">
+                <!-- Part No and Serial No -->
+                <div class="row">
+                    <div class="cell">
+                        <div class="label">यादी भाग (Part No)</div>
+                        <div class="value">${voter.Part || 'N/A'}</div>
                     </div>
-                    <div class="detail-row">
-                        <span class="label">Age:</span>
-                        <span class="value">${voter.Age || 'N/A'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Mobile:</span>
-                        <span class="value">${voter['Mobile No'] || 'N/A'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Gender:</span>
-                        <span class="value">${voter.Gender || 'N/A'}</span>
+                    <div class="cell">
+                        <div class="label">अनुक्रमांक (Serial No)</div>
+                        <div class="value">${voter['Serial No'] || 'N/A'}</div>
                     </div>
                 </div>
-
-                <div class="detail-section">
-                    <div class="section-title">Voting Info</div>
-                    <div class="detail-row">
-                        <span class="label">Serial No:</span>
-                        <span class="value">${voter['Serial No'] || 'N/A'}</span>
+                
+                <!-- Name -->
+                <div class="full-width">
+                    <div class="label">नाव (Name):</div>
+                    <div class="name-value">${(firstNameEng + ' ' + middleNameEng + ' ' + surnameEng).trim()}</div>
+                </div>
+                
+                <!-- EPIC Number -->
+                <div class="full-width">
+                    <div class="label">EPIC क्रमांक (EPIC No):</div>
+                    <div class="name-value">${voter['EPIC No'] || voter.EPIC || 'N/A'}</div>
+                </div>
+                
+                <!-- Age and Gender -->
+                <div class="row">
+                    <div class="cell">
+                        <div class="label">वय (Age):</div>
+                        <div class="value">${voter.Age || '32'}</div>
                     </div>
-                    <div class="detail-row">
-                        <span class="label">Booth No:</span>
-                        <span class="value">${voter['Booth No'] || 'N/A'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Part:</span>
-                        <span class="value">${voter.Part || 'N/A'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Address:</span>
-                        <span class="value">${(voter.Address || 'N/A').substring(0, 20)}${voter.Address && voter.Address.length > 20 ? '...' : ''}</span>
+                    <div class="cell">
+                        <div class="label">लिंग (Gender):</div>
+                        <div class="value">${voter.Gender || 'Female'}</div>
                     </div>
                 </div>
-            </div>
-
-            <div class="footer">
-                Kagal Voter Information System - 2024
+                
+                <!-- Address -->
+                <div class="full-width">
+                    <div class="label">पत्ता (Address):</div>
+                    <div class="value">${voter.Address || 'Market Yard, House No 926, Chawl D'}</div>
+                </div>
+                
+                <!-- Polling Station -->
+                <div class="full-width">
+                    <div class="label">मतदान केंद्राचे नाव व पत्ता:</div>
+                    <div class="value">${voter['Booth Name'] || 'Govt High School South Wing'}</div>
+                </div>
+                
+                <!-- Voting Time -->
+                <div class="footer">
+                    मतदानाची वेळ: सकाळी ७.३० ते सायं ५.३०
+                </div>
             </div>
         </div>
     </body>
@@ -275,11 +223,16 @@ const generateShareImage = async (req, res) => {
     });
     
     const page = await browser.newPage();
-    await page.setViewport({ width: 800, height: 600, deviceScaleFactor: 2 });
+    await page.setViewport({ width: 500, height: 700, deviceScaleFactor: 2 });
     await page.setContent(htmlTemplate, { waitUntil: 'networkidle0' });
     
-    // Wait a bit for fonts and images to load
+    // Wait for fonts and images to load
     await page.waitForTimeout(1000);
+    
+    // Get the actual content height to avoid extra space
+    const contentHeight = await page.evaluate(() => {
+      return document.querySelector('.voter-slip').offsetHeight;
+    });
     
     const imageBuffer = await page.screenshot({
       type: 'png',
@@ -287,15 +240,15 @@ const generateShareImage = async (req, res) => {
       clip: {
         x: 0,
         y: 0,
-        width: 800,
-        height: 600
+        width: 500,
+        height: Math.min(contentHeight + 10, 600) // Add small buffer but cap at 600px
       }
     });
 
     await browser.close();
 
-    // Set response headers for image download
-    const filename = `voter_${id}_${firstNameEng}_${surnameEng}.png`.replace(/\s+/g, '_');
+    // Set response headers for image
+    const filename = `voter_slip_${id}_${firstNameEng}_${surnameEng}.png`.replace(/\s+/g, '_');
     
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

@@ -4,13 +4,18 @@ import { getDownloadPdfUrl, getWhatsAppUrl } from '../services/api';
 import './VoterCard.css';
 
 const VoterCard = ({ voter, index }) => {
+  console.log('VoterCard rendering for voter:', voter.id);
+  
   const handleDownload = () => {
+    console.log('Download button clicked for voter:', voter.id);
     window.open(getDownloadPdfUrl(voter.id), '_blank');
   };
 
   const handleShare = async () => {
+    console.log('Share button clicked for voter:', voter.id);
     try {
       const shareUrl = `${process.env.REACT_APP_API_BASE_URL}/share/${voter.id}`;
+      console.log('Share URL:', shareUrl);
       
       // Check if Web Share API is supported
       if (navigator.share) {
@@ -171,7 +176,7 @@ const VoterCard = ({ voter, index }) => {
         </button>
         <button className="action-button share-btn" onClick={handleShare}>
           <FiMessageCircle />
-          <span>Share</span>
+          <span>Share Image</span>
         </button>
       </div>
     </div>

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Banner from '../components/Banner';
 import SearchForm from '../components/SearchForm';
 import './SearchPage.css';
 
@@ -18,39 +17,35 @@ const SearchPage = () => {
 
   return (
     <div className="search-page">
-      {/* Poster Section - At the very top */}
+      {/* Full-width Poster at the top */}
       <div className="poster-section">
-        <div className="poster-container">
-          <img 
-            src="/images/poster.jpg"
-            alt="Kagal Constituency Poster" 
-            className="poster-image"
-            onError={(e) => {
-              // Try different extensions if jpg fails
-              const extensions = ['jpeg', 'png', 'gif', 'webp'];
-              const currentSrc = e.target.src;
-              
-              for (const ext of extensions) {
-                const newSrc = `/images/poster.${ext}`;
-                if (!currentSrc.includes(ext)) {
-                  e.target.src = newSrc;
-                  return;
-                }
+        <img 
+          src="/images/poster.jpeg"
+          alt="Kagal Constituency Poster" 
+          className="poster-image"
+          onError={(e) => {
+            // Try different extensions if jpeg fails
+            const extensions = ['jpg', 'png', 'gif', 'webp'];
+            const currentSrc = e.target.src;
+            
+            for (const ext of extensions) {
+              const newSrc = `/images/poster.${ext}`;
+              if (!currentSrc.includes(ext)) {
+                e.target.src = newSrc;
+                return;
               }
-              
-              // If all fail, hide the image
-              e.target.style.display = 'none';
-            }}
-          />
-        </div>
+            }
+            
+            // If all fail, hide the image
+            e.target.style.display = 'none';
+          }}
+        />
       </div>
 
-      <Banner />
-
       <div className="search-container">
-        <div className="search-content fade-in">
+        <div className="search-content">
           <div className="search-header">
-            <h1>आपले नाव मतदान यादीत शोधा</h1>
+            <h1>कागल विधान सभा 2024</h1>
             <h2>Find Your Name in Voter List</h2>
             <p className="search-subtitle">
               Search by Name, EPIC Number, Mobile Number, or Address
