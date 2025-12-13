@@ -1,0 +1,257 @@
+.file-upload {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.upload-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.upload-header h2 {
+  font-size: 2rem;
+  color: #2d3748;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.upload-header p {
+  font-size: 1rem;
+  color: #4a5568;
+}
+
+.upload-area {
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  padding: 60px 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  margin-bottom: 20px;
+}
+
+.upload-area:hover {
+  border-color: #2d3748;
+  background: #f7fafc;
+}
+
+.upload-area.drag-active {
+  border-color: #2d3748;
+  background: #edf2f7;
+  transform: scale(1.02);
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  color: #4a5568;
+}
+
+.upload-placeholder h3 {
+  font-size: 1.5rem;
+  color: #2d3748;
+  font-weight: 600;
+  margin: 0;
+}
+
+.upload-placeholder p {
+  font-size: 1rem;
+  color: #718096;
+  margin: 0;
+}
+
+.browse-button {
+  padding: 12px 24px;
+  background: #2d3748;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.browse-button:hover {
+  background: #1a202c;
+  transform: translateY(-2px);
+}
+
+.file-preview {
+  display: flex;
+  justify-content: center;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  min-width: 300px;
+}
+
+.file-icon {
+  font-size: 2rem;
+  color: #4a5568;
+}
+
+.file-details h4 {
+  font-size: 1.1rem;
+  color: #2d3748;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.file-details p {
+  font-size: 0.9rem;
+  color: #718096;
+  margin: 0;
+}
+
+.remove-file {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: auto;
+}
+
+.remove-file:hover {
+  background: #c53030;
+  transform: scale(1.1);
+}
+
+.upload-actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.upload-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: #38a169;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.upload-button:hover:not(:disabled) {
+  background: #2f855a;
+  transform: translateY(-2px);
+}
+
+.upload-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.upload-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.upload-status.success {
+  background: #c6f6d5;
+  color: #22543d;
+  border: 1px solid #9ae6b4;
+}
+
+.upload-status.error {
+  background: #fed7d7;
+  color: #c53030;
+  border: 1px solid #feb2b2;
+}
+
+.status-icon {
+  font-size: 1.2rem;
+}
+
+.upload-info {
+  background: #f7fafc;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.upload-info h3 {
+  font-size: 1.1rem;
+  color: #2d3748;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.upload-info ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #4a5568;
+}
+
+.upload-info li {
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .upload-area {
+    padding: 40px 20px;
+  }
+
+  .upload-placeholder h3 {
+    font-size: 1.3rem;
+  }
+
+  .file-info {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .upload-info {
+    padding: 15px;
+  }
+}
