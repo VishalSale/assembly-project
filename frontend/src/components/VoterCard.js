@@ -9,12 +9,12 @@ const VoterCard = ({ voter, index }) => {
   const handleDownload = () => {
     console.log('Download button clicked for voter:', voter.id);
     window.open(getDownloadPdfUrl(voter.id), '_blank');
-  };
+  };  
 
   const handleShare = async () => {
     console.log('Share button clicked for voter:', voter.id);
     try {
-      const shareUrl = `${process.env.REACT_APP_API_BASE_URL}/share/${voter.id}`;
+      const shareUrl = `${process.env.REACT_APP_API_URL}/api/share/${voter.id}`;
       console.log('Share URL:', shareUrl);
       
       // Check if Web Share API is supported
@@ -25,15 +25,15 @@ const VoterCard = ({ voter, index }) => {
         const file = new File([blob], `voter_${voter.id}.png`, { type: 'image/png' });
         
         await navigator.share({
-          title: `Voter Information - ${voter.firstNameEng} ${voter.surnameEng}`,
-          text: `EPIC: ${voter.epic}\nBooth: ${voter.booth}\nSerial: ${voter.serialNo}`,
+          title: `Voter Information - ${voter.full_name}`,
+          text: `EPIC: ${voter.epic_no}\nBooth: ${voter.booth_no}\nSerial: ${voter.serial_no}`,
           files: [file]
         });
       } else {
         // Fallback: Download the image
         const link = document.createElement('a');
         link.href = shareUrl;
-        link.download = `voter_${voter.id}_${voter.firstNameEng}_${voter.surnameEng}.png`;
+        link.download = `voter_${voter.id}_${voter.full_name.replace(/\s+/g, '_')}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -41,7 +41,7 @@ const VoterCard = ({ voter, index }) => {
     } catch (error) {
       console.error('Share failed:', error);
       // Fallback: Open share URL in new tab
-      window.open(`${process.env.REACT_APP_API_BASE_URL}/share/${voter.id}`, '_blank');
+      window.open(`${process.env.REACT_APP_API_URL}/api/share/${voter.id}`, '_blank');
     }
   };
 
@@ -52,11 +52,8 @@ const VoterCard = ({ voter, index }) => {
           <FiUser />
         </div>
         <h3 className="voter-name">
-          {voter.firstNameEng} {voter.middleNameEng} {voter.surnameEng}
+          {voter.full_name}
         </h3>
-        <p className="voter-name-marathi">
-          {voter.firstName} {voter.middleName} {voter.surname}
-        </p>
       </div>
 
       <div className="voter-card-body">
@@ -65,7 +62,7 @@ const VoterCard = ({ voter, index }) => {
             <FiCreditCard className="info-icon" />
             <div>
               <span className="info-label">EPIC</span>
-              <span className="info-value">{voter.epic || 'N/A'}</span>
+              <span className="info-value">{voter.epic_no || 'N/A'}</span>
             </div>
           </div>
 
@@ -89,7 +86,7 @@ const VoterCard = ({ voter, index }) => {
             <FiMapPin className="info-icon" />
             <div>
               <span className="info-label">Booth</span>
-              <span className="info-value">{voter.booth || 'N/A'}</span>
+              <span className="info-value">{voter.booth_no || 'N/A'}</span>
             </div>
           </div>
 
@@ -109,59 +106,61 @@ const VoterCard = ({ voter, index }) => {
             <h4 className="section-title">Voting Information</h4>
             <div className="detail-row">
               <span className="detail-label">Serial No:</span>
-              <span className="detail-value">{voter.srNo || 'N/A'}</span>
+              <span className="detail-value">{voter.serial_no || 'N/A'}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Part:</span>
-              <span className="detail-value">{voter.part || 'N/A'}</span>
+              <span className="detail-label">Ward No:</span>
+              <span className="detail-value">{voter.ward_no || 'N/A'}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Part Name:</span>
-              <span className="detail-value">{voter.partName || 'N/A'}</span>
+              <span className="detail-label">Municipality:</span>
+              <span className="detail-value">{voter.municipality || 'N/A'}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Booth Name:</span>
-              <span className="detail-value">{voter.boothName || 'N/A'}</span>
+              <span className="detail-label">Assembly No:</span>
+              <span className="detail-value">{voter.assembly_no || 'N/A'}</span>
             </div>
-            {voter.eboothName && (
-              <div className="detail-row">
-                <span className="detail-label">Booth (Marathi):</span>
-                <span className="detail-value">{voter.eboothName}</span>
-              </div>
-            )}
           </div>
 
           <div className="detail-section">
             <h4 className="section-title">Address Information</h4>
             <div className="detail-row">
-              <span className="detail-label">House No:</span>
-              <span className="detail-value">{voter.houseNo || 'N/A'}</span>
-            </div>
-            <div className="detail-row">
               <span className="detail-label">Address:</span>
-              <span className="detail-value">{voter.address || 'N/A'}</span>
+              <span className="detail-value">{voter.new_address || 'N/A'}</span>
             </div>
+            {voter.society_name && (
+              <div className="detail-row">
+                <span className="detail-label">Society:</span>
+                <span className="detail-value">{voter.society_name}</span>
+              </div>
+            )}
+            {voter.flat_no && (
+              <div className="detail-row">
+                <span className="detail-label">Flat No:</span>
+                <span className="detail-value">{voter.flat_no}</span>
+              </div>
+            )}
           </div>
 
-          {(voter.fatherName || voter.mFatherName || voter.relation) && (
+          {(voter.worker_name || voter.demands || voter.dob) && (
             <div className="detail-section">
-              <h4 className="section-title">Family Information</h4>
-              {voter.fatherName && (
+              <h4 className="section-title">Additional Information</h4>
+              {voter.worker_name && (
                 <div className="detail-row">
-                  <span className="detail-label">Father's Name:</span>
-                  <span className="detail-value">{voter.fatherName}</span>
+                  <span className="detail-label">Worker Name:</span>
+                  <span className="detail-value">{voter.worker_name}</span>
                 </div>
               )}
-              {voter.mFatherName && (
+              {voter.dob && (
                 <div className="detail-row">
-                  <span className="detail-label">Father (Marathi):</span>
-                  <span className="detail-value">{voter.mFatherName}</span>
+                  <span className="detail-label">Date of Birth:</span>
+                  <span className="detail-value">{voter.dob}</span>
                 </div>
               )}
-              {voter.relation && (
+              {voter.demands && (
                 <div className="detail-row">
-                  <span className="detail-label">Relation:</span>
-                  <span className="detail-value">{voter.relation}</span>
+                  <span className="detail-label">Demands:</span>
+                  <span className="detail-value">{voter.demands}</span>
                 </div>
               )}
             </div>

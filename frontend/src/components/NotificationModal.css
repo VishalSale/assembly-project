@@ -1,0 +1,217 @@
+.notification-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.notification-modal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 450px;
+  width: 90%;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.notification-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px;
+  gap: 16px;
+}
+
+.notification-icon-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1;
+}
+
+.notification-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.notification-icon.info {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+}
+
+.notification-icon.success {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.notification-icon.warning {
+  background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+  box-shadow: 0 4px 12px rgba(237, 137, 54, 0.3);
+}
+
+.notification-icon.error {
+  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+
+.notification-text h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 6px 0;
+}
+
+.notification-text p {
+  font-size: 0.95rem;
+  color: #718096;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.notification-close {
+  width: 36px;
+  height: 36px;
+  background: #f7fafc;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #718096;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.notification-close:hover {
+  background: #edf2f7;
+  color: #2d3748;
+}
+
+.notification-footer {
+  padding: 0 24px 24px 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.notification-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.notification-button.info {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+}
+
+.notification-button.info:hover {
+  background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(66, 153, 225, 0.4);
+}
+
+.notification-button.success {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.notification-button.success:hover {
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(72, 187, 120, 0.4);
+}
+
+.notification-button.warning {
+  background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+  box-shadow: 0 4px 12px rgba(237, 137, 54, 0.3);
+}
+
+.notification-button.warning:hover {
+  background: linear-gradient(135deg, #dd6b20 0%, #c05621 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(237, 137, 54, 0.4);
+}
+
+.notification-button.error {
+  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+
+.notification-button.error:hover {
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(245, 101, 101, 0.4);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .notification-modal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .notification-header {
+    padding: 20px;
+  }
+
+  .notification-icon-container {
+    gap: 12px;
+  }
+
+  .notification-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+
+  .notification-text h3 {
+    font-size: 1.1rem;
+  }
+
+  .notification-text p {
+    font-size: 0.9rem;
+  }
+
+  .notification-footer {
+    padding: 0 20px 20px 20px;
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import { adminApi } from '../services/adminApi';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -27,32 +28,20 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      const result = await response.json();
+      console.log('Attempting login with:', { email: formData.email });
+      
+      const result = await adminApi.login(formData.email, formData.password);
+      console.log('Login response:', result);
 
       if (result.success) {
-        // Store user data and token in localStorage
-        const userData = {
-          name: result.user.name || 'Admin User',
-          email: result.user.email,
-          avatar: '/images/admin-avatar.png'
-        };
-        localStorage.setItem('adminUser', JSON.stringify(userData));
-        localStorage.setItem('adminToken', result.token);
+        console.log('Login successful, redirecting to dashboard');
         navigate('/admin/dashboard');
       } else {
         setError(result.message || 'Invalid email or password');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('Login failed. Please check your connection and try again.');
+      setError(err.message || 'Login failed. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }

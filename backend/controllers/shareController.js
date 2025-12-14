@@ -29,11 +29,8 @@ const generateShareImage = async (req, res) => {
       });
     }
 
-    // Parse names
-    const englishNameParts = (voter.EFullName || '').split(' ');
-    const firstNameEng = englishNameParts[0] || '';
-    const middleNameEng = englishNameParts[1] || '';
-    const surnameEng = englishNameParts.slice(2).join(' ') || '';
+    // Get full name from new table structure
+    const fullName = voter.full_name || 'N/A';
 
     // Check if poster image exists
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -162,48 +159,48 @@ const generateShareImage = async (req, res) => {
                 <div class="row">
                     <div class="cell">
                         <div class="label">यादी भाग (Part No)</div>
-                        <div class="value">${voter.Part || 'N/A'}</div>
+                        <div class="value">${voter.ward_no || 'N/A'}</div>
                     </div>
                     <div class="cell">
                         <div class="label">अनुक्रमांक (Serial No)</div>
-                        <div class="value">${voter['Serial No'] || 'N/A'}</div>
+                        <div class="value">${voter.serial_no || 'N/A'}</div>
                     </div>
                 </div>
                 
                 <!-- Name -->
                 <div class="full-width">
                     <div class="label">नाव (Name):</div>
-                    <div class="name-value">${(firstNameEng + ' ' + middleNameEng + ' ' + surnameEng).trim()}</div>
+                    <div class="name-value">${fullName}</div>
                 </div>
                 
                 <!-- EPIC Number -->
                 <div class="full-width">
                     <div class="label">EPIC क्रमांक (EPIC No):</div>
-                    <div class="name-value">${voter['EPIC No'] || voter.EPIC || 'N/A'}</div>
+                    <div class="name-value">${voter.epic_no || 'N/A'}</div>
                 </div>
                 
                 <!-- Age and Gender -->
                 <div class="row">
                     <div class="cell">
                         <div class="label">वय (Age):</div>
-                        <div class="value">${voter.Age || '32'}</div>
+                        <div class="value">${voter.age || 'N/A'}</div>
                     </div>
                     <div class="cell">
                         <div class="label">लिंग (Gender):</div>
-                        <div class="value">${voter.Gender || 'Female'}</div>
+                        <div class="value">${voter.gender || 'N/A'}</div>
                     </div>
                 </div>
                 
                 <!-- Address -->
                 <div class="full-width">
                     <div class="label">पत्ता (Address):</div>
-                    <div class="value">${voter.Address || 'Market Yard, House No 926, Chawl D'}</div>
+                    <div class="value">${voter.new_address || 'N/A'}</div>
                 </div>
                 
                 <!-- Polling Station -->
                 <div class="full-width">
                     <div class="label">मतदान केंद्राचे नाव व पत्ता:</div>
-                    <div class="value">${voter['Booth Name'] || 'Govt High School South Wing'}</div>
+                    <div class="value">${voter.booth_no || 'N/A'}</div>
                 </div>
                 
                 <!-- Voting Time -->
@@ -248,7 +245,9 @@ const generateShareImage = async (req, res) => {
     await browser.close();
 
     // Set response headers for image
-    const filename = `voter_slip_${id}_${firstNameEng}_${surnameEng}.png`.replace(/\s+/g, '_');
+    // Clean filename to remove invalid characters
+    const cleanName = (fullName || 'voter').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filename = `voter_slip_${id}_${cleanName}.png`;
     
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

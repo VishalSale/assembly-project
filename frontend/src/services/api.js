@@ -14,14 +14,44 @@ const api = axios.create({
 
 export const searchVoters = async (searchType, searchData, page = 1, limit = 16) => {
   try {
+    // Map frontend search data to backend format
+    let searchQuery = '';
+    
+    switch (searchType) {
+      case 'name':
+        // Combine name parts for full_name search
+        const nameParts = [
+          searchData.firstname?.trim(),
+          searchData.middlename?.trim(), 
+          searchData.surname?.trim()
+        ].filter(Boolean);
+        searchQuery = nameParts.join(' ');
+        break;
+      case 'epic':
+        searchQuery = searchData.epic?.trim();
+        break;
+      case 'mobile':
+        searchQuery = searchData.mobile?.trim();
+        break;
+      case 'address':
+        searchQuery = searchData.address?.trim();
+        break;
+      default:
+        throw { error: 'Invalid search type' };
+    }
+
+    if (!searchQuery) {
+      throw { error: 'Search query is required' };
+    }
+
     const params = {
-      searchType,
+      type: searchType === 'epic' ? 'epic' : searchType === 'mobile' ? 'mobile' : searchType === 'address' ? 'address' : 'name',
+      query: searchQuery,
       page,
-      limit,
-      ...searchData,
+      limit
     };
 
-    const response = await api.post('/search', params);
+    const response = await api.get('/api/search', { params });
     
     // Check if response is valid JSON with expected structure
     if (!response.data || typeof response.data !== 'object') {
@@ -49,19 +79,19 @@ export const searchVoters = async (searchType, searchData, page = 1, limit = 16)
 };
 
 export const getDownloadPdfUrl = (voterId) => {
-  return `${API_BASE_URL}/download-pdf/${voterId}`;
+  return `${API_BASE_URL}/api/download-pdf/${voterId}`;
 };
 
 export const getWhatsAppUrl = (mobile, voterData) => {
-  const fullName = `${voterData.firstNameEng || ''} ${voterData.middleNameEng || ''} ${voterData.surnameEng || ''}`.trim();
   const message = `
 *Voter Information*
-Name: ${fullName}
-EPIC: ${voterData.epic || 'N/A'}
-Serial No: ${voterData.serialNo || voterData.srNo || 'N/A'}
-Booth: ${voterData.booth || 'N/A'}
+Name: ${voterData.full_name || 'N/A'}
+EPIC: ${voterData.epic_no || 'N/A'}
+Serial No: ${voterData.serial_no || 'N/A'}
+Booth: ${voterData.booth_no || 'N/A'}
+Ward: ${voterData.ward_no || 'N/A'}
 Mobile: ${voterData.mobile || 'N/A'}
-Address: ${voterData.address || 'N/A'}
+Address: ${voterData.new_address || 'N/A'}
   `.trim();
 
   return `https://wa.me/${mobile}?text=${encodeURIComponent(message)}`;

@@ -2,7 +2,7 @@
 
 export const API_CONFIG = {
   // API Base URL from environment
-  BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://localhost/voter-app-react/backend/api',
+  BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000',
   
   // Timeout in milliseconds
   TIMEOUT: parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000,

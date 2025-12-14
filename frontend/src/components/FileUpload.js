@@ -1,23 +1,28 @@
 import React, { useState, useRef } from 'react';
 import { FiUpload, FiFile, FiCheck, FiX, FiAlertCircle } from 'react-icons/fi';
+import { adminApi } from '../services/adminApi';
+import UploadResultModal from './UploadResultModal';
+import { VOTER_FIELDS, UPLOAD_CONFIG, UI_MESSAGES, SAMPLE_CSV } from '../constants';
 import './FileUpload.css';
 
-const FileUpload = () => {
+const FileUpload = ({ onUploadSuccess, onViewData }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null); // 'success', 'error', null
   const [dragActive, setDragActive] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [uploadResult, setUploadResult] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleFileSelect = (file) => {
-    // Validate file type
-    if (file && file.type === 'text/csv') {
+    // Validate file type using constants
+    if (file && UPLOAD_CONFIG.ALLOWED_MIME_TYPES.includes(file.type)) {
       setSelectedFile(file);
       setUploadStatus(null);
     } else {
       setUploadStatus('error');
       setSelectedFile(null);
-      alert('Please select a valid CSV file only.');
+      alert(UI_MESSAGES.ERROR.INVALID_FILE);
     }
   };
 
@@ -54,48 +59,69 @@ const FileUpload = () => {
     setUploadStatus(null);
 
     try {
-      const formData = new FormData();
-      formData.append('csvFile', selectedFile);
+      console.log('Uploading CSV file:', selectedFile.name);
 
-      // Get token from localStorage
-      const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
-      const token = localStorage.getItem('adminToken');
-
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/upload-csv`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      const result = await response.json();
+      const result = await adminApi.uploadCsv(selectedFile);
+      console.log('Upload response:', result);
 
       if (result.success) {
-        setUploadStatus('success');
-        setSelectedFile(null);
+        console.log('Upload successful, showing modal...', result);
         
-        // Reset file input
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+        // Show custom modal with detailed results FIRST
+        setUploadResult(result);
+        setShowResultModal(true);
+        console.log('Modal state set:', { showResultModal: true, uploadResult: result });
+        
+        // Update status but keep file selected until modal is closed
+        setUploadStatus('success');
+        
+        // Notify parent component about successful upload
+        if (onUploadSuccess) {
+          onUploadSuccess(result.data);
         }
-
-        // Show detailed results
-        alert(`Upload successful!\n\nSummary:\n- Total CSV rows: ${result.data.total_rows_in_csv}\n- Processed: ${result.data.total_processed}\n- Inserted: ${result.data.inserted}\n- Updated: ${result.data.updated}\n- Errors: ${result.data.errors}\n- Skipped: ${result.data.skipped}`);
       } else {
+        // Show error in modal instead of alert
+        console.log('Upload failed, showing error modal...', result);
+        setUploadResult(result);
+        setShowResultModal(true);
         setUploadStatus('error');
-        alert(`Upload failed: ${result.message}`);
       }
     } catch (error) {
       console.error('Upload error:', error);
       setUploadStatus('error');
-      alert('Upload failed. Please check your connection and try again.');
+      
+      if (error.requiresLogin) {
+        alert('Session expired. Please login again.');
+        window.location.href = '/admin/login';
+      } else {
+        // Show error in modal instead of alert
+        const errorResult = {
+          success: false,
+          message: error.message || 'Upload failed. Please check your connection and try again.',
+          error: error.message,
+          details: error.details || 'Check your CSV file format and try again.'
+        };
+        setUploadResult(errorResult);
+        setShowResultModal(true);
+      }
     } finally {
       setUploading(false);
     }
   };
 
   const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setUploadStatus(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowResultModal(false);
+    setUploadResult(null);
+    
+    // Reset file selection when modal is closed
     setSelectedFile(null);
     setUploadStatus(null);
     if (fileInputRef.current) {
@@ -114,8 +140,8 @@ const FileUpload = () => {
   return (
     <div className="file-upload">
       <div className="upload-header">
-        <h2>Upload CSV File</h2>
-        <p>Select or drag and drop a CSV file to upload voter data</p>
+        <h2>{UI_MESSAGES.UPLOAD.TITLE}</h2>
+        <p>{UI_MESSAGES.UPLOAD.DESCRIPTION}</p>
       </div>
 
       <div 
@@ -129,7 +155,7 @@ const FileUpload = () => {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".csv"
+          accept={UPLOAD_CONFIG.ACCEPTED_FILE_TYPES}
           onChange={handleFileInputChange}
           style={{ display: 'none' }}
         />
@@ -137,10 +163,10 @@ const FileUpload = () => {
         {!selectedFile ? (
           <div className="upload-placeholder">
             <FiUpload className="upload-icon" />
-            <h3>Choose CSV file or drag it here</h3>
-            <p>Only CSV files are allowed</p>
+            <h3>{UI_MESSAGES.UPLOAD.DRAG_TEXT}</h3>
+            <p>{UI_MESSAGES.UPLOAD.FILE_TYPE_TEXT}</p>
             <button type="button" className="browse-button">
-              Browse Files
+              {UI_MESSAGES.UPLOAD.BROWSE_TEXT}
             </button>
           </div>
         ) : (
@@ -176,43 +202,89 @@ const FileUpload = () => {
             {uploading ? (
               <>
                 <div className="spinner"></div>
-                Uploading...
+                {UI_MESSAGES.UPLOAD.UPLOADING}
               </>
             ) : (
               <>
                 <FiUpload />
-                Upload File
+                {UI_MESSAGES.UPLOAD.UPLOAD_BUTTON}
               </>
             )}
           </button>
         </div>
       )}
 
+
+
       {uploadStatus && (
         <div className={`upload-status ${uploadStatus}`}>
           {uploadStatus === 'success' ? (
             <>
               <FiCheck className="status-icon" />
-              <span>File uploaded successfully!</span>
+              <span>{UI_MESSAGES.SUCCESS.UPLOAD_SUCCESS}</span>
             </>
           ) : (
             <>
               <FiAlertCircle className="status-icon" />
-              <span>Upload failed. Please try again.</span>
+              <span>{UI_MESSAGES.ERROR.UPLOAD_FAILED}</span>
             </>
           )}
         </div>
       )}
 
       <div className="upload-info">
-        <h3>File Requirements:</h3>
+        <h3>{UI_MESSAGES.REQUIREMENTS.TITLE}</h3>
         <ul>
-          <li>File format: CSV only</li>
-          <li>Maximum file size: 10MB</li>
-          <li>Required columns: Name, EPIC, Age, Gender, Address, etc.</li>
-          <li>Ensure data is properly formatted</li>
+          <li><strong>File format:</strong> {UI_MESSAGES.REQUIREMENTS.FILE_FORMAT}</li>
+          <li><strong>Maximum file size:</strong> {UPLOAD_CONFIG.MAX_FILE_SIZE_TEXT}</li>
+          <li><strong>{UI_MESSAGES.REQUIREMENTS.CASE_SENSITIVE}</strong></li>
         </ul>
+
+        <div className="field-requirements">
+          <h4>{UI_MESSAGES.REQUIREMENTS.REQUIRED_FIELDS_TITLE}</h4>
+          <div className="field-list required">
+            {VOTER_FIELDS.REQUIRED.map(field => (
+              <code key={field}>{field}</code>
+            ))}
+          </div>
+
+          <h4>{UI_MESSAGES.REQUIREMENTS.OPTIONAL_FIELDS_TITLE}</h4>
+          <div className="field-list optional">
+            {VOTER_FIELDS.OPTIONAL.map(field => (
+              <code key={field}>{field}</code>
+            ))}
+          </div>
+        </div>
+        
+        <div className="sample-format">
+          <h4>{UI_MESSAGES.REQUIREMENTS.SAMPLE_FORMAT_TITLE}</h4>
+          <code>
+            {SAMPLE_CSV.HEADERS}<br/>
+            {SAMPLE_CSV.ROWS.map((row, index) => (
+              <React.Fragment key={index}>
+                {row}<br/>
+              </React.Fragment>
+            ))}
+          </code>
+        </div>
+
+        <div className="validation-notes">
+          <h4>{UI_MESSAGES.REQUIREMENTS.VALIDATION_NOTES_TITLE}</h4>
+          <ul>
+            {UI_MESSAGES.REQUIREMENTS.VALIDATION_NOTES.map((note, index) => (
+              <li key={index}>{note}</li>
+            ))}
+          </ul>
+        </div>
       </div>
+
+      {/* Upload Result Modal */}
+      <UploadResultModal
+        isOpen={showResultModal}
+        onClose={handleCloseModal}
+        uploadResult={uploadResult}
+        onViewData={onViewData}
+      />
     </div>
   );
 };

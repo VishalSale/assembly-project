@@ -10,7 +10,7 @@ const TABLES = {
 
 // Voter Data Field Mappings
 const VOTER_FIELDS = {
-  // Required fields for CSV upload validation
+  // Required fields for CSV upload validation (must be present and not empty)
   REQUIRED: ['epic_no', 'full_name', 'age', 'gender'],
   
   // All available fields in kagal_data table
@@ -36,25 +36,26 @@ const VOTER_FIELDS = {
     'updated_at'
   ],
 
-  // CSV column mapping (supports multiple variations)
-  CSV_MAPPING: {
-    municipality: ['municipality', 'Municipality', 'MUNICIPALITY'],
-    ward_no: ['ward_no', 'ward', 'Ward', 'WARD_NO', 'ward_number'],
-    booth_no: ['booth_no', 'booth', 'Booth', 'BOOTH_NO', 'booth_number'],
-    serial_no: ['serial_no', 'serial', 'Serial', 'SERIAL_NO', 'serial_number'],
-    full_name: ['full_name', 'name', 'Name', 'FULL_NAME', 'voter_name'],
-    gender: ['gender', 'Gender', 'GENDER', 'sex'],
-    age: ['age', 'Age', 'AGE'],
-    epic_no: ['epic_no', 'epic', 'EPIC', 'EPIC_NO', 'voter_id'],
-    assembly_no: ['assembly_no', 'assembly', 'Assembly', 'ASSEMBLY_NO'],
-    mobile: ['mobile', 'mobile_no', 'Mobile', 'MOBILE', 'phone', 'contact'],
-    dob: ['dob', 'date_of_birth', 'DOB', 'DATE_OF_BIRTH', 'birth_date'],
-    demands: ['demands', 'Demands', 'DEMANDS', 'requirements'],
-    worker_name: ['worker_name', 'worker', 'Worker', 'WORKER_NAME'],
-    new_address: ['new_address', 'address', 'Address', 'NEW_ADDRESS', 'full_address'],
-    society_name: ['society_name', 'society', 'Society', 'SOCIETY_NAME'],
-    flat_no: ['flat_no', 'flat', 'Flat', 'FLAT_NO', 'flat_number']
-  }
+  // STRICT CSV FIELD NAMES - Must match exactly (case-sensitive)
+  // Only these field names are allowed in CSV uploads
+  ALLOWED_CSV_FIELDS: [
+    'municipality',
+    'ward_no',
+    'booth_no', 
+    'serial_no',
+    'full_name',
+    'gender',
+    'age',
+    'epic_no',
+    'assembly_no',
+    'mobile',
+    'dob',
+    'demands',
+    'worker_name',
+    'new_address',
+    'society_name',
+    'flat_no'
+  ]
 };
 
 // Validation Rules
@@ -100,6 +101,8 @@ const MESSAGES = {
     CSV_REQUIRED: 'CSV file is required',
     CSV_ONLY: 'Only CSV files are allowed',
     UPLOAD_FAILED: 'CSV upload failed',
+    INVALID_CSV_HEADERS: 'Invalid CSV headers. Field names must match exactly.',
+    MISSING_REQUIRED_HEADERS: 'Missing required CSV headers.',
     INTERNAL_ERROR: 'Internal server error',
     UNAUTHORIZED: 'Access denied. No token provided.',
     INVALID_TOKEN: 'Invalid or expired token.'

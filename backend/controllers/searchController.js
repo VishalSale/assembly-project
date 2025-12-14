@@ -1,67 +1,51 @@
 const validator = require('validator');
 const { db } = require('../config/database');
 
-// Validation helper functions
+// Validation helper functions - Updated for new kagal_data structure
 const validateSearchInput = (searchType, searchData) => {
   const errors = [];
 
-  if (!searchType || !['name', 'epic', 'mobile', 'address', 'booth', 'serial'].includes(searchType)) {
-    errors.push('Invalid search type');
+  if (!searchType || !['name', 'epic', 'mobile', 'address'].includes(searchType)) {
+    errors.push('Invalid search type. Must be: name, epic, mobile, or address');
   }
 
   switch (searchType) {
     case 'name':
-      if (!searchData.firstname && !searchData.middlename && !searchData.surname && !searchData.name) {
-        errors.push('At least one name field is required');
-      }
-      if (searchData.firstname && !validator.isLength(searchData.firstname, { min: 1, max: 255 })) {
-        errors.push('First name must be between 1 and 255 characters');
-      }
-      if (searchData.middlename && !validator.isLength(searchData.middlename, { min: 1, max: 255 })) {
-        errors.push('Middle name must be between 1 and 255 characters');
-      }
-      if (searchData.surname && !validator.isLength(searchData.surname, { min: 1, max: 255 })) {
-        errors.push('Surname must be between 1 and 255 characters');
+      const nameQuery = searchData.query || 
+        [searchData.firstname, searchData.middlename, searchData.surname]
+          .filter(Boolean).join(' ');
+      
+      if (!nameQuery) {
+        errors.push('Name query is required');
+      } else if (!validator.isLength(nameQuery, { min: 1, max: 255 })) {
+        errors.push('Name must be between 1 and 255 characters');
       }
       break;
 
     case 'mobile':
-      if (!searchData.mobile) {
+      const mobileQuery = searchData.query || searchData.mobile;
+      if (!mobileQuery) {
         errors.push('Mobile number is required');
-      } else if (!validator.isLength(searchData.mobile, { min: 1, max: 20 })) {
+      } else if (!validator.isLength(mobileQuery, { min: 1, max: 20 })) {
         errors.push('Mobile number must be between 1 and 20 characters');
       }
       break;
 
     case 'epic':
-      if (!searchData.epic) {
+      const epicQuery = searchData.query || searchData.epic;
+      if (!epicQuery) {
         errors.push('EPIC number is required');
-      } else if (!validator.isLength(searchData.epic, { min: 1, max: 50 })) {
+      } else if (!validator.isLength(epicQuery, { min: 1, max: 50 })) {
         errors.push('EPIC number must be between 1 and 50 characters');
       }
       break;
 
     case 'address':
-      if (!searchData.address) {
+      const addressQuery = searchData.query || searchData.address;
+      if (!addressQuery) {
         errors.push('Address is required');
-      } else if (!validator.isLength(searchData.address, { min: 1, max: 500 })) {
+      } else if (!validator.isLength(addressQuery, { min: 1, max: 500 })) {
         errors.push('Address must be between 1 and 500 characters');
-      }
-      break;
-
-    case 'booth':
-      if (!searchData.boothNo) {
-        errors.push('Booth number is required');
-      } else if (!validator.isLength(searchData.boothNo, { min: 1, max: 50 })) {
-        errors.push('Booth number must be between 1 and 50 characters');
-      }
-      break;
-
-    case 'serial':
-      if (!searchData.serialNo) {
-        errors.push('Serial number is required');
-      } else if (!validator.isLength(searchData.serialNo, { min: 1, max: 50 })) {
-        errors.push('Serial number must be between 1 and 50 characters');
       }
       break;
   }
@@ -69,10 +53,16 @@ const validateSearchInput = (searchType, searchData) => {
   return errors;
 };
 
-// Search voters controller
+// Search voters controller - Updated for new kagal_data table structure
 const searchVoters = async (req, res) => {
   try {
-    const { searchType, page = 1, limit = 16, ...searchData } = req.body;
+    // Support both GET and POST requests
+    const isGet = req.method === 'GET';
+    const { type, query: searchQuery, page = 1, limit = 16 } = isGet ? req.query : req.body;
+    
+    // For backward compatibility, also support old format
+    const searchType = type || req.body.searchType;
+    const searchData = isGet ? { query: searchQuery } : req.body;
 
     // Validate pagination
     const pageNum = parseInt(page);
@@ -92,70 +82,72 @@ const searchVoters = async (req, res) => {
       });
     }
 
-    // Validate search input
-    const validationErrors = validateSearchInput(searchType, searchData);
-    if (validationErrors.length > 0) {
+    if (!searchType || !['name', 'epic', 'mobile', 'address'].includes(searchType)) {
       return res.status(400).json({
         success: false,
-        error: validationErrors.join(', ')
+        error: 'Invalid search type. Must be: name, epic, mobile, or address'
       });
     }
 
     const offset = (pageNum - 1) * limitNum;
 
-    // Build query based on search type
+    // Build query based on search type using new kagal_data table structure
     let query = db('kagal_data');
     
     switch (searchType) {
       case 'name':
-        if (searchData.firstname) {
-          query = query.where(function() {
-            this.where('EFullName', 'ilike', `%${searchData.firstname}%`)
-                .orWhere('MFullName', 'ilike', `%${searchData.firstname}%`);
-          });
-        }
-        if (searchData.middlename) {
-          query = query.where(function() {
-            this.where('EFullName', 'ilike', `%${searchData.middlename}%`)
-                .orWhere('MFullName', 'ilike', `%${searchData.middlename}%`);
-          });
-        }
-        if (searchData.surname) {
-          query = query.where(function() {
-            this.where('EFullName', 'ilike', `%${searchData.surname}%`)
-                .orWhere('MFullName', 'ilike', `%${searchData.surname}%`);
-          });
-        }
-        if (searchData.name) {
-          query = query.where(function() {
-            this.where('EFullName', 'ilike', `%${searchData.name}%`)
-                .orWhere('MFullName', 'ilike', `%${searchData.name}%`);
+        const nameQuery = isGet ? searchQuery : 
+          [searchData.firstname, searchData.middlename, searchData.surname]
+            .filter(Boolean).join(' ') || searchData.query;
+        
+        if (nameQuery) {
+          query = query.where('full_name', 'ilike', `%${nameQuery}%`);
+        } else {
+          return res.status(400).json({
+            success: false,
+            error: 'Name query is required'
           });
         }
         break;
 
       case 'mobile':
-        query = query.where('Mobile No', 'ilike', `%${searchData.mobile}%`);
-        break;
-
-      case 'booth':
-        query = query.where('Booth No', searchData.boothNo);
+        const mobileQuery = isGet ? searchQuery : searchData.mobile || searchData.query;
+        if (mobileQuery) {
+          query = query.where('mobile', 'ilike', `%${mobileQuery}%`);
+        } else {
+          return res.status(400).json({
+            success: false,
+            error: 'Mobile number is required'
+          });
+        }
         break;
 
       case 'epic':
-        query = query.where('EPIC', 'ilike', `%${searchData.epic}%`);
+        const epicQuery = isGet ? searchQuery : searchData.epic || searchData.query;
+        if (epicQuery) {
+          query = query.where('epic_no', 'ilike', `%${epicQuery}%`);
+        } else {
+          return res.status(400).json({
+            success: false,
+            error: 'EPIC number is required'
+          });
+        }
         break;
 
       case 'address':
-        query = query.where(function() {
-          this.where('Address', 'ilike', `%${searchData.address}%`)
-              .orWhere('Booth Name', 'ilike', `%${searchData.address}%`)
-              .orWhere('Ebooth Name', 'ilike', `%${searchData.address}%`);
-        });
-        break;
-
-      case 'serial':
-        query = query.where('Serial No', searchData.serialNo);
+        const addressQuery = isGet ? searchQuery : searchData.address || searchData.query;
+        if (addressQuery) {
+          query = query.where(function() {
+            this.where('new_address', 'ilike', `%${addressQuery}%`)
+                .orWhere('society_name', 'ilike', `%${addressQuery}%`)
+                .orWhere('municipality', 'ilike', `%${addressQuery}%`);
+          });
+        } else {
+          return res.status(400).json({
+            success: false,
+            error: 'Address query is required'
+          });
+        }
         break;
     }
 
@@ -172,57 +164,10 @@ const searchVoters = async (req, res) => {
       .offset(offset)
       .orderBy('id');
 
-    // Format response to match frontend expectations
-    const formattedVoters = voters.map(voter => {
-      // Parse English full name
-      const englishNameParts = (voter.EFullName || '').split(' ');
-      const firstNameEng = englishNameParts[0] || '';
-      const middleNameEng = englishNameParts[1] || '';
-      const surnameEng = englishNameParts.slice(2).join(' ') || '';
-      
-      // Parse Marathi full name
-      const marathiNameParts = (voter.MFullName || '').split(' ');
-      const firstName = marathiNameParts[0] || '';
-      const middleName = marathiNameParts[1] || '';
-      const surname = marathiNameParts.slice(2).join(' ') || '';
-
-      return {
-        id: voter.id,
-        // English names
-        firstNameEng,
-        middleNameEng,
-        surnameEng,
-        fullNameEng: voter.EFullName || '',
-        // Marathi names
-        firstName,
-        middleName,
-        surname,
-        fullNameMarathi: voter.MFullName || '',
-        // Contact & Identity
-        mobile: voter['Mobile No'] || '',
-        epic: voter.EPIC || '',
-        age: voter.Age || '',
-        gender: voter.Gender || '',
-        // Voting details
-        serialNo: voter['Serial No'] || '',
-        srNo: voter['Serial No'] || '',
-        booth: voter['Booth No'] || '',
-        boothName: voter['Booth Name'] || '',
-        eboothName: voter['Ebooth Name'] || '',
-        part: voter.Part || '',
-        partName: voter['Part Name'] || '',
-        // Address & Family
-        address: voter.Address || '',
-        houseNo: voter['House No'] || '',
-        fatherName: voter['Father Name'] || '',
-        mFatherName: voter['MFather Name'] || '',
-        relation: voter.Relation || ''
-      };
-    });
-
+    // Return data in new format (matching kagal_data table structure)
     res.json({
       success: true,
-      data: formattedVoters,
+      data: voters, // Return raw data from kagal_data table
       pagination: {
         currentPage: pageNum,
         totalPages,

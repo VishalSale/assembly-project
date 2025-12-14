@@ -5,9 +5,9 @@ const { TABLES, VOTER_FIELDS, VALIDATION, MESSAGES, PAGINATION } = require('../.
 
 exports.uploadVoterFile = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       success: false,
-      message: 'CSV file is required' 
+      message: 'CSV file is required'
     });
   }
 
@@ -17,9 +17,9 @@ exports.uploadVoterFile = async (req, res) => {
     if (fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
-    return res.status(400).json({ 
+    return res.status(400).json({
       success: false,
-      message: 'Only CSV files are allowed' 
+      message: 'Only CSV files are allowed'
     });
   }
 
@@ -32,11 +32,42 @@ exports.uploadVoterFile = async (req, res) => {
   let skipped = 0;
 
   try {
-    // Read and parse CSV file
+    let csvHeaders = [];
+    let isFirstRow = true;
+
+    // Read and parse CSV file with header validation
     await new Promise((resolve, reject) => {
       fs.createReadStream(filePath)
         .pipe(csv())
+        .on('headers', (headers) => {
+          csvHeaders = headers;
+          console.log('📋 CSV Headers found:', headers);
+        })
         .on('data', (row) => {
+          if (isFirstRow) {
+            // Validate CSV headers strictly on first row
+            const invalidHeaders = csvHeaders.filter(header => 
+              !VOTER_FIELDS.ALLOWED_CSV_FIELDS.includes(header)
+            );
+
+            if (invalidHeaders.length > 0) {
+              reject(new Error(`${MESSAGES.ERROR.INVALID_CSV_HEADERS} Invalid headers: ${invalidHeaders.join(', ')}. Only these exact field names are allowed: ${VOTER_FIELDS.ALLOWED_CSV_FIELDS.join(', ')}`));
+              return;
+            }
+
+            // Check if required fields are present in headers
+            const missingRequiredHeaders = VOTER_FIELDS.REQUIRED.filter(field => 
+              !csvHeaders.includes(field)
+            );
+
+            if (missingRequiredHeaders.length > 0) {
+              reject(new Error(`${MESSAGES.ERROR.MISSING_REQUIRED_HEADERS} Missing: ${missingRequiredHeaders.join(', ')}. Required headers are: ${VOTER_FIELDS.REQUIRED.join(', ')}`));
+              return;
+            }
+
+            console.log('✅ CSV headers validation passed');
+            isFirstRow = false;
+          }
           csvData.push(row);
         })
         .on('end', () => {
@@ -48,32 +79,28 @@ exports.uploadVoterFile = async (req, res) => {
     // Process each row
     for (const row of csvData) {
       try {
-        // Map CSV columns to database columns using constants
+        // Map CSV columns to database columns using STRICT field names
         const voterData = {};
-        
-        // Use CSV mapping from constants for flexible column names
-        Object.keys(VOTER_FIELDS.CSV_MAPPING).forEach(dbField => {
-          const csvVariations = VOTER_FIELDS.CSV_MAPPING[dbField];
-          for (const csvField of csvVariations) {
-            if (row[csvField] && row[csvField].toString().trim() !== '') {
-              voterData[dbField] = row[csvField].toString().trim();
-              break; // Use first found variation
-            }
+
+        // Only process fields that are in ALLOWED_CSV_FIELDS
+        VOTER_FIELDS.ALLOWED_CSV_FIELDS.forEach(field => {
+          if (row[field] !== undefined && row[field] !== null && row[field].toString().trim() !== '') {
+            voterData[field] = row[field].toString().trim();
           }
         });
 
         // VALIDATION: Check required fields using constants
-        const requiredFields = [];
-        
+        const missingRequiredFields = [];
+
         VOTER_FIELDS.REQUIRED.forEach(field => {
           if (!voterData[field] || voterData[field].toString().trim() === '') {
-            requiredFields.push(field);
+            missingRequiredFields.push(field);
           }
         });
 
         // Skip row if required fields are missing
-        if (requiredFields.length > 0) {
-          console.log(`⚠️ Skipping row - missing required fields: ${requiredFields.join(', ')}`);
+        if (missingRequiredFields.length > 0) {
+          console.log(`⚠️ Skipping row - missing required fields: ${missingRequiredFields.join(', ')}`);
           skipped++;
           continue;
         }
@@ -105,16 +132,16 @@ exports.uploadVoterFile = async (req, res) => {
         if (existingVoter) {
           // UPDATE: Only update fields that have new data
           const updateData = {};
-          
+
           // Compare each field and only update if new data is provided and different
           Object.keys(voterData).forEach(key => {
             const newValue = voterData[key];
             const existingValue = existingVoter[key];
-            
+
             // Update if new value exists and is different from existing
-            if (newValue !== null && newValue !== undefined && 
-                newValue.toString().trim() !== '' && 
-                newValue !== existingValue) {
+            if (newValue !== null && newValue !== undefined &&
+              newValue.toString().trim() !== '' &&
+              newValue !== existingValue) {
               updateData[key] = newValue;
             }
           });
@@ -123,7 +150,7 @@ exports.uploadVoterFile = async (req, res) => {
             await db(TABLES.VOTERS)
               .where('epic_no', voterData.epic_no)
               .update(updateData);
-            
+
             updated++;
           }
         } else {
@@ -140,7 +167,7 @@ exports.uploadVoterFile = async (req, res) => {
 
     // Clean up uploaded file
     fs.unlinkSync(filePath);
-    
+
     res.json({
       success: true,
       message: MESSAGES.SUCCESS.CSV_UPLOAD,
@@ -160,7 +187,7 @@ exports.uploadVoterFile = async (req, res) => {
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-    
+
     res.status(500).json({
       success: false,
       message: MESSAGES.ERROR.UPLOAD_FAILED,
@@ -172,21 +199,35 @@ exports.uploadVoterFile = async (req, res) => {
 
 exports.getVoterData = async (req, res) => {
   try {
-    const voterData = await db(TABLES.VOTERS).select('*').limit(PAGINATION.DEFAULT_LIMIT);
-    
-    if(!voterData || voterData.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "No data found",
-        data: []
-      });
-    }
-    
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || PAGINATION.DEFAULT_LIMIT, 1), PAGINATION.MAX_LIMIT);
+    const offset = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCountResult = await db(TABLES.VOTERS).count('id as total').first();
+    const totalRecords = parseInt(totalCountResult.total) || 0;
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    // Get paginated data
+    const voterData = await db(TABLES.VOTERS)
+      .select('*')
+      .limit(limit)
+      .offset(offset)
+      .orderBy('id', 'asc');
+
     res.status(200).json({
       success: true,
-      message: "Data retrieved successfully",
+      message: totalRecords > 0 ? "Data retrieved successfully" : "No data found",
       data: voterData,
-      count: voterData.length
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalRecords: totalRecords,
+        limit: limit,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+        recordsOnPage: voterData.length
+      }
     });
   } catch (err) {
     console.error('Get voter data error:', err);

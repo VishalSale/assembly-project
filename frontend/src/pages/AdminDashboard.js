@@ -1,63 +1,181 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiUpload, FiDatabase, FiUsers, FiMenu, FiBell, FiSettings } from 'react-icons/fi';
 import Sidebar from '../components/Sidebar';
 import FileUpload from '../components/FileUpload';
+import VoterDataTable from '../components/VoterDataTable';
+import { adminApi } from '../services/adminApi';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('upload');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in
-    const userData = localStorage.getItem('adminUser');
-    const token = localStorage.getItem('adminToken');
-    
-    if (!userData || !token) {
+    // Check if user is authenticated
+    if (!adminApi.isAuthenticated()) {
       navigate('/admin/login');
       return;
     }
-    setUser(JSON.parse(userData));
+    
+    const userData = adminApi.getCurrentUser();
+    setUser(userData);
   }, [navigate]);
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      
-      // Call backend logout API
-      await fetch(`${process.env.REACT_APP_API_URL}/api/admin/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      console.log('Logging out...');
+      await adminApi.logout();
+      console.log('Logout successful, redirecting to login page');
+      navigate('/admin/login');
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      // Always clear local storage and redirect
-      localStorage.removeItem('adminUser');
-      localStorage.removeItem('adminToken');
+      // Still redirect even if logout API fails
       navigate('/admin/login');
     }
   };
 
+  const handleUploadSuccess = (uploadData) => {
+    console.log('CSV upload successful:', uploadData);
+    // Don't switch tabs immediately - let user see the success modal first
+    // The modal will handle the user experience
+    
+    // Trigger refresh of voter data table for when user switches to database tab
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleViewUploadedData = () => {
+    // Switch to database tab to show the uploaded data
+    setActiveTab('database');
+  };
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
+
   if (!user) {
-    return <div>Loading...</div>;
+    return (
+      <div className="admin-dashboard">
+        <div className="loading-dashboard">
+          <div className="loading-spinner"></div>
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
   }
+
+  const tabs = [
+    {
+      id: 'upload',
+      label: 'Upload Data',
+      icon: <FiUpload />,
+      description: 'Upload CSV files to update the voter database'
+    },
+    {
+      id: 'database',
+      label: 'Voter Database',
+      icon: <FiDatabase />,
+      description: 'View and manage voter records'
+    }
+  ];
 
   return (
     <div className="admin-dashboard">
-      <Sidebar user={user} onLogout={handleLogout} />
+      <Sidebar 
+        user={user} 
+        onLogout={handleLogout}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isOpen={sidebarOpen}
+        onClose={closeSidebar}
+      />
       
       <div className="main-content">
-        <div className="content-header">
-          <h1>Upload Voter Data</h1>
-          <p>Upload CSV files to update the voter database</p>
+        {/* Mobile Header */}
+        <div className="mobile-header">
+          <button className="sidebar-toggle" onClick={toggleSidebar}>
+            <FiMenu />
+          </button>
+          <div className="mobile-title">
+            <h1>Admin Dashboard</h1>
+          </div>
+          <div className="mobile-actions">
+            {/* <button className="action-btn">
+              <FiBell />
+            </button>
+            <button className="action-btn">
+              <FiSettings />
+            </button> */}
+          </div>
+        </div>
+
+        {/* Desktop Header */}
+        <div className="desktop-header">
+          <div className="header-info">
+            <h1>Admin Dashboard</h1>
+            <p>Manage voter data and system settings</p>
+          </div>
+          
+          <div className="header-actions">
+            <div className="user-info">
+              <FiUsers className="user-icon" />
+              <span>Welcome, {user.name}</span>
+            </div>
+            <div className="action-buttons">
+              {/* <button className="action-btn">
+                <FiBell />
+              </button>
+              <button className="action-btn">
+                <FiSettings />
+              </button> */}
+            </div>
+          </div>
         </div>
         
-        <div className="upload-section">
-          <FileUpload />
+        <div className="dashboard-content">
+          <div className="content-tabs">
+            <div className="tab-navigation">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+            
+            <div className="tab-content">
+              <div className="tab-header">
+                <h2>{tabs.find(tab => tab.id === activeTab)?.label}</h2>
+                <p>{tabs.find(tab => tab.id === activeTab)?.description}</p>
+              </div>
+              
+              {activeTab === 'upload' && (
+                <div className="upload-section">
+                  <FileUpload 
+                    onUploadSuccess={handleUploadSuccess} 
+                    onViewData={handleViewUploadedData}
+                  />
+                </div>
+              )}
+              
+              {activeTab === 'database' && (
+                <div className="database-section">
+                  <VoterDataTable key={refreshTrigger} />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
