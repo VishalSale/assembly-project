@@ -1,10 +1,12 @@
-import React from 'react';
-import { FiDownload, FiMessageCircle, FiUser, FiPhone, FiMapPin, FiCreditCard } from 'react-icons/fi';
-import { getDownloadPdfUrl, getWhatsAppUrl } from '../services/api';
+import React, { useState } from 'react';
+import { FiDownload, FiShare2, FiUser, FiPhone, FiMapPin, FiCreditCard, FiLoader } from 'react-icons/fi';
+import { getDownloadPdfUrl } from '../services/api';
 import './VoterCard.css';
 
 const VoterCard = ({ voter, index }) => {
   console.log('VoterCard rendering for voter:', voter.id);
+  
+  const [shareLoading, setShareLoading] = useState(false);
   
   const handleDownload = () => {
     console.log('Download button clicked for voter:', voter.id);
@@ -13,37 +15,63 @@ const VoterCard = ({ voter, index }) => {
 
   const handleShare = async () => {
     console.log('Share button clicked for voter:', voter.id);
+    setShareLoading(true);
+    
     try {
       const shareUrl = `${process.env.REACT_APP_API_URL}/api/share/${voter.id}`;
       console.log('Share URL:', shareUrl);
+
+      // Fetch the image
+      const response = await fetch(shareUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch image');
+      }
       
-      // Check if Web Share API is supported
-      if (navigator.share) {
-        // Generate the share image first
-        const response = await fetch(shareUrl);
-        const blob = await response.blob();
-        const file = new File([blob], `voter_${voter.id}.png`, { type: 'image/png' });
-        
+      const blob = await response.blob();
+      const file = new File([blob], `voter_${voter.id}_${voter.full_name.replace(/\s+/g, '_')}.png`, { 
+        type: 'image/png' 
+      });
+
+      // Check if Web Share API is supported and can share files
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: `Voter Information - ${voter.full_name}`,
-          text: `EPIC: ${voter.epic_no}\nBooth: ${voter.booth_no}\nSerial: ${voter.serial_no}`,
+          text: `EPIC: ${voter.epic_no} | Booth: ${voter.booth_no} | Serial: ${voter.serial_no}`,
           files: [file]
         });
+      } else if (navigator.share) {
+        // Fallback: Share URL if files not supported
+        await navigator.share({
+          title: `Voter Information - ${voter.full_name}`,
+          text: `EPIC: ${voter.epic_no} | Booth: ${voter.booth_no} | Serial: ${voter.serial_no}`,
+          url: shareUrl
+        });
       } else {
-        // Fallback: Download the image
+        // Desktop fallback: Download image and open WhatsApp Web
         const link = document.createElement('a');
-        link.href = shareUrl;
+        link.href = URL.createObjectURL(blob);
         link.download = `voter_${voter.id}_${voter.full_name.replace(/\s+/g, '_')}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+        
+        // Open WhatsApp Web for desktop users
+        setTimeout(() => {
+          window.open('https://web.whatsapp.com/', '_blank');
+        }, 500);
       }
+      
+      setShareLoading(false);
     } catch (error) {
       console.error('Share failed:', error);
-      // Fallback: Open share URL in new tab
+      setShareLoading(false);
+      
+      // Final fallback: Open share URL in new tab
       window.open(`${process.env.REACT_APP_API_URL}/api/share/${voter.id}`, '_blank');
     }
   };
+
 
   return (
     <div className="voter-card" style={{ animationDelay: `${index * 0.1}s` }}>
@@ -173,9 +201,13 @@ const VoterCard = ({ voter, index }) => {
           <FiDownload />
           <span>Download PDF</span>
         </button>
-        <button className="action-button share-btn" onClick={handleShare}>
-          <FiMessageCircle />
-          <span>Share Image</span>
+        <button 
+          className={`action-button share-btn ${shareLoading ? 'loading' : ''}`} 
+          onClick={handleShare}
+          disabled={shareLoading}
+        >
+          {shareLoading ? <FiLoader className="spinner" /> : <FiShare2 />}
+          <span>{shareLoading ? 'Loading...' : 'Share Image'}</span>
         </button>
       </div>
     </div>
