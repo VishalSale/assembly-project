@@ -1,11 +1,12 @@
 const bcrypt = require('bcrypt');
+const { TABLES } = require('../config/constants');
 
 exports.seed = async function(knex) {
-  await knex('users').del();
+  await knex(TABLES.USERS).del();
 
   const passwordHash = await bcrypt.hash('admin123', 10);
 
-  await knex('users').insert([
+  await knex(TABLES.USERS).insert([
     {
       name: 'Admin',
       email: 'admin@gmail.com',

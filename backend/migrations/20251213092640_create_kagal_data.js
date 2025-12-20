@@ -1,5 +1,7 @@
+const { TABLES } = require('../config/constants');
+
 exports.up = function(knex) {
-  return knex.schema.createTable('kagal_data', function(table) {
+  return knex.schema.createTable(TABLES.VOTERS, function(table) {
     table.bigIncrements('id').primary();
 
     table.string('municipality');
@@ -30,5 +32,5 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-  return knex.schema.dropTable('kagal_data');
+  return knex.schema.dropTable(TABLES.VOTERS);
 };

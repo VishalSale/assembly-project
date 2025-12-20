@@ -1,5 +1,6 @@
 const validator = require('validator');
 const { db } = require('../config/database');
+const { TABLES, HTTP_STATUS, DB_COLUMNS } = require('../config/constants');
 
 // Validation helper functions - Updated for new kagal_data structure
 const validateSearchInput = (searchType, searchData) => {
@@ -69,21 +70,21 @@ const searchVoters = async (req, res) => {
     const limitNum = parseInt(limit);
 
     if (!validator.isInt(page.toString(), { min: 1 })) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         error: 'Page must be a positive integer'
       });
     }
 
     if (!validator.isInt(limit.toString(), { min: 1, max: 100 })) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         error: 'Limit must be between 1 and 100'
       });
     }
 
     if (!searchType || !['name', 'epic', 'mobile', 'address'].includes(searchType)) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         error: 'Invalid search type. Must be: name, epic, mobile, or address'
       });
@@ -92,7 +93,7 @@ const searchVoters = async (req, res) => {
     const offset = (pageNum - 1) * limitNum;
 
     // Build query based on search type using new kagal_data table structure
-    let query = db('kagal_data');
+    let query = db(TABLES.VOTERS);
     
     switch (searchType) {
       case 'name':
@@ -101,9 +102,9 @@ const searchVoters = async (req, res) => {
             .filter(Boolean).join(' ') || searchData.query;
         
         if (nameQuery) {
-          query = query.where('full_name', 'ilike', `%${nameQuery}%`);
+          query = query.where(DB_COLUMNS.VOTERS.FULL_NAME, 'ilike', `%${nameQuery}%`);
         } else {
-          return res.status(400).json({
+          return res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             error: 'Name query is required'
           });
@@ -113,9 +114,9 @@ const searchVoters = async (req, res) => {
       case 'mobile':
         const mobileQuery = isGet ? searchQuery : searchData.mobile || searchData.query;
         if (mobileQuery) {
-          query = query.where('mobile', 'ilike', `%${mobileQuery}%`);
+          query = query.where(DB_COLUMNS.VOTERS.MOBILE, 'ilike', `%${mobileQuery}%`);
         } else {
-          return res.status(400).json({
+          return res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             error: 'Mobile number is required'
           });
@@ -125,9 +126,9 @@ const searchVoters = async (req, res) => {
       case 'epic':
         const epicQuery = isGet ? searchQuery : searchData.epic || searchData.query;
         if (epicQuery) {
-          query = query.where('epic_no', 'ilike', `%${epicQuery}%`);
+          query = query.where(DB_COLUMNS.VOTERS.EPIC_NO, 'ilike', `%${epicQuery}%`);
         } else {
-          return res.status(400).json({
+          return res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             error: 'EPIC number is required'
           });
@@ -138,12 +139,12 @@ const searchVoters = async (req, res) => {
         const addressQuery = isGet ? searchQuery : searchData.address || searchData.query;
         if (addressQuery) {
           query = query.where(function() {
-            this.where('new_address', 'ilike', `%${addressQuery}%`)
-                .orWhere('society_name', 'ilike', `%${addressQuery}%`)
-                .orWhere('municipality', 'ilike', `%${addressQuery}%`);
+            this.where(DB_COLUMNS.VOTERS.NEW_ADDRESS, 'ilike', `%${addressQuery}%`)
+                .orWhere(DB_COLUMNS.VOTERS.SOCIETY_NAME, 'ilike', `%${addressQuery}%`)
+                .orWhere(DB_COLUMNS.VOTERS.MUNICIPALITY, 'ilike', `%${addressQuery}%`);
           });
         } else {
-          return res.status(400).json({
+          return res.status(HTTP_STATUS.BAD_REQUEST).json({
             success: false,
             error: 'Address query is required'
           });
@@ -153,7 +154,7 @@ const searchVoters = async (req, res) => {
 
     // Get total count
     const countQuery = query.clone();
-    const totalResult = await countQuery.count('id as total').first();
+    const totalResult = await countQuery.count(`${DB_COLUMNS.VOTERS.ID} as total`).first();
     const totalRecords = parseInt(totalResult.total);
     const totalPages = Math.ceil(totalRecords / limitNum);
 
@@ -162,7 +163,7 @@ const searchVoters = async (req, res) => {
       .select('*')
       .limit(limitNum)
       .offset(offset)
-      .orderBy('id');
+      .orderBy(DB_COLUMNS.VOTERS.ID);
 
     // Return data in new format (matching kagal_data table structure)
     res.json({
@@ -180,7 +181,7 @@ const searchVoters = async (req, res) => {
 
   } catch (error) {
     console.error('Search error:', error);
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_ERROR).json({
       success: false,
       error: 'Internal server error'
     });

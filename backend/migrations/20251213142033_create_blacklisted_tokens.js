@@ -1,5 +1,7 @@
+const { TABLES } = require('../config/constants');
+
 exports.up = function (knex) {
-    return knex.schema.createTable('blacklisted_tokens', function (table) {
+    return knex.schema.createTable(TABLES.BLACKLISTED_TOKENS, function (table) {
         table.bigIncrements('id').primary();
         table.text('token').notNullable();
         table.timestamp('expires_at').notNullable();
@@ -11,5 +13,5 @@ exports.up = function (knex) {
 };
 
 exports.down = function (knex) {
-    return knex.schema.dropTableIfExists('blacklisted_tokens');
+    return knex.schema.dropTableIfExists(TABLES.BLACKLISTED_TOKENS);
 };

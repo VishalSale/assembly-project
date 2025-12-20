@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { db } = require('../config/database');
+const { TABLES, HTTP_STATUS, CACHE } = require('../config/constants');
 const axios = require('axios');
 
 const authenticateToken = async (req, res, next) => {
@@ -7,15 +8,15 @@ const authenticateToken = async (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-        return res.status(401).json({ success: false, message: 'Access denied. No token provided.' });
+        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ success: false, message: 'Access denied. No token provided.' });
     }
 
-    const isBlacklisted = await db('blacklisted_tokens')
+    const isBlacklisted = await db(TABLES.BLACKLISTED_TOKENS)
         .where({ token })
         .first();
 
     if (isBlacklisted) {
-        return res.status(401).json({ message: 'Token expired' });
+        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Token expired' });
     }
 
     try {
@@ -24,14 +25,14 @@ const authenticateToken = async (req, res, next) => {
         req.user = decoded; // Attach decoded payload to request
         next();
     } catch (err) {
-        return res.status(403).json({ success: false, message: 'Invalid or expired token.' });
+        return res.status(HTTP_STATUS.FORBIDDEN).json({ success: false, message: 'Invalid or expired token.' });
     }
 };
 
 let cachedPermission = null;
 let lastFetchedAt = 0;
 // Set cache TTL here (ms)
-const PERMISSION_CACHE_TTL = 6000000;
+const PERMISSION_CACHE_TTL = CACHE.PERMISSION_TTL;
 
 const systemPermission = async (req, res, next) => {
     try {
@@ -54,14 +55,14 @@ const systemPermission = async (req, res, next) => {
         }
 
         if (cachedPermission !== 'allow') {
-            return res.status(503).json({ success: false, message: 'System is temporarily unavailable' });
+            return res.status(HTTP_STATUS.SERVICE_UNAVAILABLE).json({ success: false, message: 'System is temporarily unavailable' });
         }
 
         next();
     } catch (err) {
         cachedPermission = 'block';
         lastFetchedAt = Date.now();
-        return res.status(503).json({ success: false, message: 'System is temporarily unavailable' });
+        return res.status(HTTP_STATUS.SERVICE_UNAVAILABLE).json({ success: false, message: 'System is temporarily unavailable' });
     }
 };
 

@@ -1,5 +1,6 @@
 const validator = require('validator');
 const { db } = require('../config/database');
+const { TABLES, HTTP_STATUS, DB_COLUMNS } = require('../config/constants');
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
@@ -11,26 +12,26 @@ const generateShareImage = async (req, res) => {
 
     // Validate voter ID
     if (!id || !validator.isInt(id.toString())) {
-      return res.status(400).json({
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
         success: false,
         error: 'Invalid voter ID'
       });
     }
 
     // Fetch voter data from database
-    const voter = await db('kagal_data')
-      .where('id', id)
+    const voter = await db(TABLES.VOTERS)
+      .where(DB_COLUMNS.VOTERS.ID, id)
       .first();
 
     if (!voter) {
-      return res.status(404).json({
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
         success: false,
         error: 'Voter not found'
       });
     }
 
     // Get full name from new table structure
-    const fullName = voter.full_name || 'N/A';
+    const fullName = voter[DB_COLUMNS.VOTERS.FULL_NAME] || 'N/A';
 
     // Check if poster image exists
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -159,11 +160,11 @@ const generateShareImage = async (req, res) => {
                 <div class="row">
                     <div class="cell">
                         <div class="label">यादी भाग (Part No)</div>
-                        <div class="value">${voter.ward_no || 'N/A'}</div>
+                        <div class="value">${voter[DB_COLUMNS.VOTERS.WARD_NO] || 'N/A'}</div>
                     </div>
                     <div class="cell">
                         <div class="label">अनुक्रमांक (Serial No)</div>
-                        <div class="value">${voter.serial_no || 'N/A'}</div>
+                        <div class="value">${voter[DB_COLUMNS.VOTERS.SERIAL_NO] || 'N/A'}</div>
                     </div>
                 </div>
                 
@@ -176,31 +177,31 @@ const generateShareImage = async (req, res) => {
                 <!-- EPIC Number -->
                 <div class="full-width">
                     <div class="label">EPIC क्रमांक (EPIC No):</div>
-                    <div class="name-value">${voter.epic_no || 'N/A'}</div>
+                    <div class="name-value">${voter[DB_COLUMNS.VOTERS.EPIC_NO] || 'N/A'}</div>
                 </div>
                 
                 <!-- Age and Gender -->
                 <div class="row">
                     <div class="cell">
                         <div class="label">वय (Age):</div>
-                        <div class="value">${voter.age || 'N/A'}</div>
+                        <div class="value">${voter[DB_COLUMNS.VOTERS.AGE] || 'N/A'}</div>
                     </div>
                     <div class="cell">
                         <div class="label">लिंग (Gender):</div>
-                        <div class="value">${voter.gender || 'N/A'}</div>
+                        <div class="value">${voter[DB_COLUMNS.VOTERS.GENDER] || 'N/A'}</div>
                     </div>
                 </div>
                 
                 <!-- Address -->
                 <div class="full-width">
                     <div class="label">पत्ता (Address):</div>
-                    <div class="value">${voter.new_address || 'N/A'}</div>
+                    <div class="value">${voter[DB_COLUMNS.VOTERS.NEW_ADDRESS] || 'N/A'}</div>
                 </div>
                 
                 <!-- Polling Station -->
                 <div class="full-width">
                     <div class="label">मतदान केंद्राचे नाव व पत्ता:</div>
-                    <div class="value">${voter.booth_no || 'N/A'}</div>
+                    <div class="value">${voter[DB_COLUMNS.VOTERS.BOOTH_NO] || 'N/A'}</div>
                 </div>
                 
                 <!-- Voting Time -->
@@ -258,7 +259,7 @@ const generateShareImage = async (req, res) => {
 
   } catch (error) {
     console.error('Share image generation error:', error);
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_ERROR).json({
       success: false,
       error: 'Failed to generate share image'
     });

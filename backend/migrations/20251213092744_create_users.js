@@ -1,5 +1,7 @@
+const { TABLES } = require('../config/constants');
+
 exports.up = function (knex) {
-    return knex.schema.createTable('users', function (table) {
+    return knex.schema.createTable(TABLES.USERS, function (table) {
         table.bigIncrements('id').primary();
 
         table.string('name').notNullable();
@@ -24,5 +26,5 @@ exports.up = function (knex) {
 };
 
 exports.down = function (knex) {
-    return knex.schema.dropTableIfExists('users');
+    return knex.schema.dropTableIfExists(TABLES.USERS);
 };

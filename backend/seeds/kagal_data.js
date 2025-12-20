@@ -1,7 +1,9 @@
-exports.seed = async function (knex) {
-  await knex('kagal_data').del();
+const { TABLES } = require('../config/constants');
 
-  await knex('kagal_data').insert([
+exports.seed = async function (knex) {
+  await knex(TABLES.VOTERS).del();
+
+  await knex(TABLES.VOTERS).insert([
     {
       municipality: 'Vita',
       ward_no: '1',

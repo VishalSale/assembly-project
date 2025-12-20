@@ -1,11 +1,11 @@
 const fs = require('fs');
 const csv = require('csv-parser');
 const { db } = require('../../config/database');
-const { TABLES, VOTER_FIELDS, VALIDATION, MESSAGES, PAGINATION } = require('../../config/constants');
+const { TABLES, VOTER_FIELDS, VALIDATION, MESSAGES, PAGINATION, HTTP_STATUS, DB_COLUMNS } = require('../../config/constants');
 
 exports.uploadVoterFile = async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: 'CSV file is required'
     });
@@ -17,7 +17,7 @@ exports.uploadVoterFile = async (req, res) => {
     if (fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
-    return res.status(400).json({
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       message: 'Only CSV files are allowed'
     });
@@ -33,7 +33,7 @@ exports.uploadVoterFile = async (req, res) => {
 
   try {
     let csvHeaders = [];
-    let isFirstRow = true;
+    let headerValidationDone = false;
 
     // Read and parse CSV file with header validation
     await new Promise((resolve, reject) => {
@@ -41,32 +41,42 @@ exports.uploadVoterFile = async (req, res) => {
         .pipe(csv())
         .on('headers', (headers) => {
           csvHeaders = headers;
+          
+          // Validate CSV headers immediately when headers are detected
+          const invalidHeaders = csvHeaders.filter(header => 
+            !VOTER_FIELDS.ALLOWED_CSV_FIELDS.includes(header)
+          );
+
+          if (invalidHeaders.length > 0) {
+            const errorMessage = `${MESSAGES.ERROR.INVALID_CSV_HEADERS}\n\n` +
+              `❌ Invalid field names found: ${invalidHeaders.join(', ')}\n\n` +
+              `✅ Allowed field names are:\n${VOTER_FIELDS.ALLOWED_CSV_FIELDS.join(', ')}\n\n` +
+              `📝 Please check your CSV headers and make sure they match exactly (case-sensitive).`;
+            reject(new Error(errorMessage));
+            return;
+          }
+
+          // Check if required fields are present in headers
+          const missingRequiredHeaders = VOTER_FIELDS.REQUIRED.filter(field => 
+            !csvHeaders.includes(field)
+          );
+
+          if (missingRequiredHeaders.length > 0) {
+            const errorMessage = `${MESSAGES.ERROR.MISSING_REQUIRED_HEADERS}\n\n` +
+              `❌ Missing required fields: ${missingRequiredHeaders.join(', ')}\n\n` +
+              `✅ Required fields are: ${VOTER_FIELDS.REQUIRED.join(', ')}\n\n` +
+              `📝 Your CSV must contain all required fields.`;
+            reject(new Error(errorMessage));
+            return;
+          }
+
+          headerValidationDone = true;
         })
         .on('data', (row) => {
-          if (isFirstRow) {
-            // Validate CSV headers strictly on first row
-            const invalidHeaders = csvHeaders.filter(header => 
-              !VOTER_FIELDS.ALLOWED_CSV_FIELDS.includes(header)
-            );
-
-            if (invalidHeaders.length > 0) {
-              reject(new Error(`${MESSAGES.ERROR.INVALID_CSV_HEADERS} Invalid headers: ${invalidHeaders.join(', ')}. Only these exact field names are allowed: ${VOTER_FIELDS.ALLOWED_CSV_FIELDS.join(', ')}`));
-              return;
-            }
-
-            // Check if required fields are present in headers
-            const missingRequiredHeaders = VOTER_FIELDS.REQUIRED.filter(field => 
-              !csvHeaders.includes(field)
-            );
-
-            if (missingRequiredHeaders.length > 0) {
-              reject(new Error(`${MESSAGES.ERROR.MISSING_REQUIRED_HEADERS} Missing: ${missingRequiredHeaders.join(', ')}. Required headers are: ${VOTER_FIELDS.REQUIRED.join(', ')}`));
-              return;
-            }
-
-            isFirstRow = false;
+          // Only process data if header validation passed
+          if (headerValidationDone) {
+            csvData.push(row);
           }
-          csvData.push(row);
         })
         .on('end', () => {
           resolve();
@@ -121,7 +131,7 @@ exports.uploadVoterFile = async (req, res) => {
 
         // Check if voter exists by epic_no using table constant
         const existingVoter = await db(TABLES.VOTERS)
-          .where('epic_no', voterData.epic_no)
+          .where(DB_COLUMNS.VOTERS.EPIC_NO, voterData.epic_no)
           .first();
 
         if (existingVoter) {
@@ -143,7 +153,7 @@ exports.uploadVoterFile = async (req, res) => {
 
           if (Object.keys(updateData).length > 0) {
             await db(TABLES.VOTERS)
-              .where('epic_no', voterData.epic_no)
+              .where(DB_COLUMNS.VOTERS.EPIC_NO, voterData.epic_no)
               .update(updateData);
 
             updated++;
@@ -183,11 +193,12 @@ exports.uploadVoterFile = async (req, res) => {
       fs.unlinkSync(filePath);
     }
 
-    res.status(500).json({
+    // Send the detailed error message as the main message
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
-      message: MESSAGES.ERROR.UPLOAD_FAILED,
-      error: err.message,
-      details: 'Check server logs for more information'
+      message: err.message, // Use the detailed error message directly
+      error: MESSAGES.ERROR.UPLOAD_FAILED,
+      details: 'Please fix the issues above and try again'
     });
   }
 };
@@ -199,7 +210,7 @@ exports.getVoterData = async (req, res) => {
     const offset = (page - 1) * limit;
 
     // Get total count for pagination
-    const totalCountResult = await db(TABLES.VOTERS).count('id as total').first();
+    const totalCountResult = await db(TABLES.VOTERS).count(`${DB_COLUMNS.VOTERS.ID} as total`).first();
     const totalRecords = parseInt(totalCountResult.total) || 0;
     const totalPages = Math.ceil(totalRecords / limit);
 
@@ -208,9 +219,9 @@ exports.getVoterData = async (req, res) => {
       .select('*')
       .limit(limit)
       .offset(offset)
-      .orderBy('id', 'asc');
+      .orderBy(DB_COLUMNS.VOTERS.ID, 'asc');
 
-    res.status(200).json({
+    res.status(HTTP_STATUS.OK).json({
       success: true,
       message: totalRecords > 0 ? "Data retrieved successfully" : "No data found",
       data: voterData,
@@ -226,7 +237,7 @@ exports.getVoterData = async (req, res) => {
     });
   } catch (err) {
     console.error('Get voter data error:', err);
-    res.status(500).json({
+    res.status(HTTP_STATUS.INTERNAL_ERROR).json({
       success: false,
       message: 'Failed to get voter data',
       error: err.message

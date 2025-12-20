@@ -168,7 +168,7 @@ const UploadResultModal = ({ isOpen, onClose, uploadResult, onViewData }) => {
                   <div className="notice-content">
                     <h4>Some records were skipped</h4>
                     <p>
-                      {data.skipped} record{data.skipped !== 1 ? 's' : ''} were skipped due to missing required fields 
+                      {data.skipped} record{data.skipped !== 1 ? 's' : ''} were skipped due to missing required fields are one of these or all
                       (epic_no, full_name, age, gender).
                     </p>
                   </div>

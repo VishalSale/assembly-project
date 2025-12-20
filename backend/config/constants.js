@@ -5,7 +5,8 @@
 // Database Table Names
 const TABLES = {
   VOTERS: 'kagal_data',
-  USERS: 'users'
+  USERS: 'users',
+  BLACKLISTED_TOKENS: 'blacklisted_tokens'
 };
 
 // Voter Data Field Mappings
@@ -83,7 +84,72 @@ const UPLOAD = {
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   ALLOWED_EXTENSIONS: ['.csv'],
   ALLOWED_MIME_TYPES: ['text/csv', 'application/csv'],
-  UPLOAD_DIR: 'uploads/'
+  UPLOAD_DIR: 'uploads/',
+  FILENAME_PREFIX: 'csv_upload_'
+};
+
+// Cache Configuration
+const CACHE = {
+  PERMISSION_TTL: 6000000, // 6000 seconds
+  DEFAULT_TTL: 300000 // 5 minutes
+};
+
+// HTTP Status Codes
+const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503
+};
+
+// Database Column Names
+const DB_COLUMNS = {
+  VOTERS: {
+    ID: 'id',
+    EPIC_NO: 'epic_no',
+    FULL_NAME: 'full_name',
+    MOBILE: 'mobile',
+    AGE: 'age',
+    GENDER: 'gender',
+    WARD_NO: 'ward_no',
+    BOOTH_NO: 'booth_no',
+    SERIAL_NO: 'serial_no',
+    NEW_ADDRESS: 'new_address',
+    SOCIETY_NAME: 'society_name',
+    MUNICIPALITY: 'municipality',
+    ASSEMBLY_NO: 'assembly_no',
+    DOB: 'dob',
+    DEMANDS: 'demands',
+    WORKER_NAME: 'worker_name',
+    FLAT_NO: 'flat_no',
+    CREATED_AT: 'created_at',
+    UPDATED_AT: 'updated_at'
+  },
+  USERS: {
+    ID: 'id',
+    NAME: 'name',
+    EMAIL: 'email',
+    MOBILE: 'mobile',
+    PASSWORD: 'password',
+    PASSWORDB64: 'passwordb64',
+    ROLE: 'role',
+    WARD_ID: 'ward_id',
+    WARD_NAME: 'ward_name',
+    STATUS: 'status',
+    CREATED_AT: 'created_at',
+    UPDATED_AT: 'updated_at'
+  },
+  BLACKLISTED_TOKENS: {
+    ID: 'id',
+    TOKEN: 'token',
+    EXPIRES_AT: 'expires_at',
+    CREATED_AT: 'created_at',
+    UPDATED_AT: 'updated_at'
+  }
 };
 
 // API Response Messages
@@ -101,8 +167,8 @@ const MESSAGES = {
     CSV_REQUIRED: 'CSV file is required',
     CSV_ONLY: 'Only CSV files are allowed',
     UPLOAD_FAILED: 'CSV upload failed',
-    INVALID_CSV_HEADERS: 'Invalid CSV headers. Field names must match exactly.',
-    MISSING_REQUIRED_HEADERS: 'Missing required CSV headers.',
+    INVALID_CSV_HEADERS: 'CSV contains invalid field names.',
+    MISSING_REQUIRED_HEADERS: 'CSV is missing required fields.',
     INTERNAL_ERROR: 'Internal server error',
     UNAUTHORIZED: 'Access denied. No token provided.',
     INVALID_TOKEN: 'Invalid or expired token.'
@@ -133,6 +199,9 @@ module.exports = {
   VOTER_FIELDS,
   VALIDATION,
   UPLOAD,
+  CACHE,
+  HTTP_STATUS,
+  DB_COLUMNS,
   MESSAGES,
   JWT,
   PAGINATION,
