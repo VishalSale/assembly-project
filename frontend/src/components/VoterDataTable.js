@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiSearch, FiDownload, FiEye, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { adminApi } from '../services/adminApi';
+import { showSuccess, showError, showInfo, showWarning, showSessionExpired } from '../services/toastService';
 import NotificationModal from './NotificationModal';
 import { UI_MESSAGES, TABLE_CONFIG } from '../constants';
 import './VoterDataTable.css';
@@ -38,14 +39,22 @@ const VoterDataTable = () => {
           setTotalPages(1);
           setCurrentPage(1);
         }
+        
+        // Show success toast
+        showSuccess(`Loaded ${result.data?.length || 0} voter records successfully.`);
       } else {
-        setError(result.message || 'Failed to fetch voter data');
+        const errorMessage = result.message || 'Failed to fetch voter data';
+        setError(errorMessage);
+        showError(errorMessage);
       }
     } catch (err) {
       console.error('Fetch voter data error:', err);
-      setError(err.message || 'Failed to fetch voter data');
+      const errorMessage = err.message || 'Failed to fetch voter data';
+      setError(errorMessage);
+      showError(errorMessage);
       
       if (err.requiresLogin) {
+        showSessionExpired();
         window.location.href = '/admin/login';
       }
     } finally {
@@ -61,12 +70,14 @@ const VoterDataTable = () => {
   // Handle page change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
+      showInfo(`Loading page ${page}...`);
       fetchVoterData(page);
     }
   };
 
   // Handle refresh
   const handleRefresh = () => {
+    showInfo('Refreshing voter data...');
     fetchVoterData(currentPage);
   };
 
@@ -86,6 +97,7 @@ const VoterDataTable = () => {
   // Handle export (placeholder for future implementation)
   const handleExport = () => {
     setShowNotification(true);
+    showInfo('Export feature will be available soon!');
   };
 
   const closeNotification = () => {
@@ -96,6 +108,7 @@ const VoterDataTable = () => {
   const handleLimitChange = (newLimit) => {
     setLimit(newLimit);
     setCurrentPage(1); // Reset to first page when changing page size
+    showInfo(`Changed page size to ${newLimit} records per page.`);
   };
 
   if (loading) {

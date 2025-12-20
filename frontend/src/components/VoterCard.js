@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import { FiDownload, FiShare2, FiUser, FiPhone, FiMapPin, FiCreditCard, FiLoader } from 'react-icons/fi';
 import { getDownloadPdfUrl } from '../services/api';
+import { showSuccess, showError, showInfo, showWarning } from '../services/toastService';
 import './VoterCard.css';
 
 const VoterCard = ({ voter, index }) => {
   const [shareLoading, setShareLoading] = useState(false);
   
   const handleDownload = () => {
+    showInfo('Generating PDF download...');
     window.open(getDownloadPdfUrl(voter.id), '_blank');
+    showSuccess('PDF download started successfully!');
   };  
 
   const handleShare = async () => {
     setShareLoading(true);
+    showInfo('Preparing voter information for sharing...');
     
     try {
       const shareUrl = `${process.env.REACT_APP_API_URL}/api/share/${voter.id}`;
@@ -23,7 +27,7 @@ const VoterCard = ({ voter, index }) => {
       if (response.status === 503) {
         const result = await response.json().catch(() => ({ message: 'System is temporarily unavailable' }));
         setShareLoading(false);
-        alert(result.message || 'System is temporarily unavailable');
+        showError(result.message || 'System is temporarily unavailable');
         return;
       }
       
@@ -43,6 +47,7 @@ const VoterCard = ({ voter, index }) => {
           text: `EPIC: ${voter.epic_no} | Booth: ${voter.booth_no} | Serial: ${voter.serial_no}`,
           files: [file]
         });
+        showSuccess('Voter information shared successfully!');
       } else if (navigator.share) {
         // Fallback: Share URL if files not supported
         await navigator.share({
@@ -50,6 +55,7 @@ const VoterCard = ({ voter, index }) => {
           text: `EPIC: ${voter.epic_no} | Booth: ${voter.booth_no} | Serial: ${voter.serial_no}`,
           url: shareUrl
         });
+        showSuccess('Voter information shared successfully!');
       } else {
         // Desktop fallback: Download image and open WhatsApp Web
         const link = document.createElement('a');
@@ -59,6 +65,8 @@ const VoterCard = ({ voter, index }) => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
+        
+        showSuccess('Voter image downloaded! Opening WhatsApp Web...');
         
         // Open WhatsApp Web for desktop users
         setTimeout(() => {
@@ -71,8 +79,13 @@ const VoterCard = ({ voter, index }) => {
       console.error('Share failed:', error);
       setShareLoading(false);
       
-      // Final fallback: Open share URL in new tab
-      window.open(`${process.env.REACT_APP_API_URL}/api/share/${voter.id}`, '_blank');
+      if (error.name === 'AbortError') {
+        showWarning('Share cancelled by user.');
+      } else {
+        showError('Share failed. Opening image in new tab as fallback.');
+        // Final fallback: Open share URL in new tab
+        window.open(`${process.env.REACT_APP_API_URL}/api/share/${voter.id}`, '_blank');
+      }
     }
   };
 

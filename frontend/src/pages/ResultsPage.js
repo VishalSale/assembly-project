@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { searchVoters } from '../services/api';
+import { showError, showInfo, showSuccess } from '../services/toastService';
 import VoterCard from '../components/VoterCard';
 import Pagination from '../components/Pagination';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -13,6 +14,7 @@ const ResultsPage = () => {
   const [voters, setVoters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isInitialSearch, setIsInitialSearch] = useState(true);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -27,6 +29,7 @@ const ResultsPage = () => {
       navigate('/');
       return;
     }
+    setIsInitialSearch(true);
     fetchVoters(1);
   }, [searchType, searchData]);
 
@@ -37,8 +40,20 @@ const ResultsPage = () => {
       const response = await searchVoters(searchType, searchData, page);
       setVoters(response.data);
       setPagination(response.pagination);
+      
+      // Show success toast with results count ONLY on initial search
+      if (isInitialSearch) {
+        if (response.data.length > 0) {
+          showSuccess(`Found ${response.pagination.totalRecords} voter${response.pagination.totalRecords !== 1 ? 's' : ''} matching your search.`);
+        } else {
+          showInfo('No voters found matching your search criteria. Try adjusting your search terms.');
+        }
+        setIsInitialSearch(false);
+      }
     } catch (err) {
-      setError(err.error || 'Failed to fetch voters');
+      const errorMessage = err.error || 'Failed to fetch voters';
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -46,6 +61,7 @@ const ResultsPage = () => {
 
   const handlePageChange = (page) => {
     fetchVoters(page);
+    showInfo(`Loading page ${page}...`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

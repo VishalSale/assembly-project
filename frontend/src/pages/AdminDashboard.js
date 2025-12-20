@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUpload, FiDatabase, FiUsers, FiMenu, FiBell, FiSettings } from 'react-icons/fi';
+import { showSuccess, showError, showInfo, showSessionExpired } from '../services/toastService';
 import Sidebar from '../components/Sidebar';
 import FileUpload from '../components/FileUpload';
 import VoterDataTable from '../components/VoterDataTable';
@@ -17,20 +18,24 @@ const AdminDashboard = () => {
   useEffect(() => {
     // Check if user is authenticated
     if (!adminApi.isAuthenticated()) {
+      showSessionExpired();
       navigate('/admin/login');
       return;
     }
     
     const userData = adminApi.getCurrentUser();
     setUser(userData);
+    showInfo(`Welcome back, ${userData?.name || 'Admin'}!`);
   }, [navigate]);
 
   const handleLogout = async () => {
     try {
       await adminApi.logout();
+      showSuccess('Logged out successfully. See you next time!');
       navigate('/admin/login');
     } catch (error) {
       console.error('Logout error:', error);
+      showError('Logout failed, but redirecting anyway.');
       // Still redirect even if logout API fails
       navigate('/admin/login');
     }
@@ -42,6 +47,9 @@ const AdminDashboard = () => {
     
     // Trigger refresh of voter data table for when user switches to database tab
     setRefreshTrigger(prev => prev + 1);
+    
+    // Show additional toast for quick feedback
+    showSuccess(`Upload completed! ${uploadData.total_processed || 0} records processed.`);
   };
 
   const handleViewUploadedData = () => {

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_CONFIG } from './config';
+import { showNetworkError, showSessionExpired, showError } from './toastService';
 
 // Use API_BASE_URL from config
 const API_BASE_URL = API_CONFIG.BASE_URL;
@@ -23,6 +24,9 @@ api.interceptors.response.use(
     if (error.response?.status === 503) {
       const backendMessage = error.response?.data?.message || 'System is temporarily unavailable';
       
+      // Show toast for system permission error
+      showError(backendMessage);
+      
       // Create a new error with the backend message
       const systemPermissionError = new Error(backendMessage);
       systemPermissionError.isSystemPermissionError = true;
@@ -30,6 +34,16 @@ api.interceptors.response.use(
       systemPermissionError.response = error.response;
       
       return Promise.reject(systemPermissionError);
+    }
+    
+    // Handle authentication errors (401, 403)
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      showSessionExpired();
+    }
+    
+    // Handle network errors
+    if (!error.response) {
+      showNetworkError();
     }
     
     // Handle other HTTP errors - preserve backend error messages

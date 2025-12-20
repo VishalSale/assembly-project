@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FiUser, FiCreditCard, FiPhone, FiMapPin, FiSearch } from 'react-icons/fi';
+import { showWarning, showInfo } from '../services/toastService';
 import './SearchForm.css';
 
 const SearchForm = ({ onSearch, loading }) => {
@@ -24,6 +25,8 @@ const SearchForm = ({ onSearch, loading }) => {
     e.preventDefault();
     
     let searchData = {};
+    let isValid = false;
+    
     switch (activeTab) {
       case 'name':
         searchData = {
@@ -31,20 +34,42 @@ const SearchForm = ({ onSearch, loading }) => {
           middlename: formData.middlename,
           surname: formData.surname
         };
+        isValid = formData.firstname.trim().length > 0;
+        if (!isValid) {
+          showWarning('Please enter at least the first name to search.');
+          return;
+        }
         break;
       case 'epic':
         searchData = { epic: formData.epic };
+        isValid = formData.epic.trim().length > 0;
+        if (!isValid) {
+          showWarning('Please enter an EPIC number to search.');
+          return;
+        }
         break;
       case 'mobile':
         searchData = { mobile: formData.mobile };
+        isValid = formData.mobile.trim().length > 0;
+        if (!isValid) {
+          showWarning('Please enter a mobile number to search.');
+          return;
+        }
         break;
       case 'address':
         searchData = { address: formData.address };
+        isValid = formData.address.trim().length > 0;
+        if (!isValid) {
+          showWarning('Please enter an address to search.');
+          return;
+        }
         break;
       default:
-        break;
+        showWarning('Please select a search type.');
+        return;
     }
 
+    showInfo('Starting search...');
     onSearch(activeTab, searchData);
   };
 
@@ -55,6 +80,10 @@ const SearchForm = ({ onSearch, loading }) => {
     // { id: 'address', label: 'Address', icon: <FiMapPin /> }
   ];
 
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+  };
+
   return (
     <div className="search-form-container">
       <div className="tabs">
@@ -62,7 +91,7 @@ const SearchForm = ({ onSearch, loading }) => {
           <button
             key={tab.id}
             className={`tab ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
           >
             {tab.icon}
             <span>{tab.label}</span>
