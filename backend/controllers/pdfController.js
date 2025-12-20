@@ -223,20 +223,14 @@ const generateVoterPdf = async (req, res) => {
     `;
 
         // Generate PDF using Puppeteer
-        console.log('Starting PDF generation for voter:', id);
-
         const browser = await puppeteer.launch({
             headless: 'new',
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
         });
 
-        console.log('Browser launched successfully');
-
         const page = await browser.newPage();
-        console.log('New page created');
 
         await page.setContent(htmlTemplate, { waitUntil: 'networkidle0' });
-        console.log('HTML content set');
 
         // Get actual content height to ensure it fits on one page
         const contentHeight = await page.evaluate(() => {
@@ -255,9 +249,7 @@ const generateVoterPdf = async (req, res) => {
             }
         });
 
-        console.log('PDF generated, buffer size:', pdfBuffer.length);
         await browser.close();
-        console.log('Browser closed');
 
         // Set response headers for PDF download
         // Clean filename to remove invalid characters

@@ -41,7 +41,6 @@ exports.uploadVoterFile = async (req, res) => {
         .pipe(csv())
         .on('headers', (headers) => {
           csvHeaders = headers;
-          console.log('📋 CSV Headers found:', headers);
         })
         .on('data', (row) => {
           if (isFirstRow) {
@@ -65,7 +64,6 @@ exports.uploadVoterFile = async (req, res) => {
               return;
             }
 
-            console.log('✅ CSV headers validation passed');
             isFirstRow = false;
           }
           csvData.push(row);
@@ -100,7 +98,6 @@ exports.uploadVoterFile = async (req, res) => {
 
         // Skip row if required fields are missing
         if (missingRequiredFields.length > 0) {
-          console.log(`⚠️ Skipping row - missing required fields: ${missingRequiredFields.join(', ')}`);
           skipped++;
           continue;
         }
@@ -109,7 +106,6 @@ exports.uploadVoterFile = async (req, res) => {
         if (voterData.age) {
           const ageNum = parseInt(voterData.age);
           if (!isNaN(ageNum) && (ageNum < VALIDATION.AGE.MIN || ageNum > VALIDATION.AGE.MAX)) {
-            console.log(`⚠️ Skipping row - invalid age: ${voterData.age} (must be between ${VALIDATION.AGE.MIN}-${VALIDATION.AGE.MAX})`);
             skipped++;
             continue;
           }
@@ -117,7 +113,6 @@ exports.uploadVoterFile = async (req, res) => {
 
         // Validate EPIC length
         if (voterData.epic_no && (voterData.epic_no.length < VALIDATION.EPIC.MIN_LENGTH || voterData.epic_no.length > VALIDATION.EPIC.MAX_LENGTH)) {
-          console.log(`⚠️ Skipping row - invalid EPIC length: ${voterData.epic_no}`);
           skipped++;
           continue;
         }

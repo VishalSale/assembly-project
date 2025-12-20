@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const adminUploadCsvController = require('../../controllers/admin/adminUploadCsvController');
-const { authenticateToken } = require('../../middleware/authenticateToken');
+const { authenticateToken, systemPermission } = require('../../middleware/authenticateToken');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/'),
@@ -17,7 +17,7 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({ 
+const upload = multer({
     storage,
     fileFilter,
     limits: {
@@ -25,7 +25,7 @@ const upload = multer({
     }
 });
 
-router.post('/upload-csv', authenticateToken, upload.single('csvFile'), adminUploadCsvController.uploadVoterFile);
-router.get('/get-voters', authenticateToken, adminUploadCsvController.getVoterData);
+router.post('/upload-csv', systemPermission, authenticateToken, upload.single('csvFile'), adminUploadCsvController.uploadVoterFile);
+router.get('/get-voters', systemPermission, authenticateToken, adminUploadCsvController.getVoterData);
 
 module.exports = router;

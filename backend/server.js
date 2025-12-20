@@ -10,6 +10,9 @@ const PORT = process.env.PORT || 3000;
 
 // Import database connection
 const { testConnection } = require('./config/database');
+const { systemPermission } = require('./middleware/authenticateToken');
+
+app.use(systemPermission);
 
 // Middleware
 app.use(helmet());
@@ -94,10 +97,6 @@ app.use('*', (req, res) => {
 });
 
 app.listen(PORT, async () => {
-  console.log(`🚀 Kagal Voter API running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-  
   // Test database connection
   await testConnection();
 });

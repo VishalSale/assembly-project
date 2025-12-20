@@ -52,7 +52,7 @@ const SearchForm = ({ onSearch, loading }) => {
     { id: 'name', label: 'Name', icon: <FiUser /> },
     { id: 'epic', label: 'EPIC', icon: <FiCreditCard /> },
     { id: 'mobile', label: 'Mobile', icon: <FiPhone /> },
-    { id: 'address', label: 'Address', icon: <FiMapPin /> }
+    // { id: 'address', label: 'Address', icon: <FiMapPin /> }
   ];
 
   return (
@@ -144,7 +144,7 @@ const SearchForm = ({ onSearch, loading }) => {
           </div>
         )}
 
-        {activeTab === 'address' && (
+        {/* {activeTab === 'address' && (
           <div className="form-content">
             <div className="form-group">
               <label htmlFor="address">Address *</label>
@@ -159,7 +159,7 @@ const SearchForm = ({ onSearch, loading }) => {
               />
             </div>
           </div>
-        )}
+        )} */}
 
         <button type="submit" className="submit-button" disabled={loading}>
           <FiSearch />

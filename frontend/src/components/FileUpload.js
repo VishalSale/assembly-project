@@ -59,18 +59,12 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
     setUploadStatus(null);
 
     try {
-      console.log('Uploading CSV file:', selectedFile.name);
-
       const result = await adminApi.uploadCsv(selectedFile);
-      console.log('Upload response:', result);
 
       if (result.success) {
-        console.log('Upload successful, showing modal...', result);
-        
         // Show custom modal with detailed results FIRST
         setUploadResult(result);
         setShowResultModal(true);
-        console.log('Modal state set:', { showResultModal: true, uploadResult: result });
         
         // Update status but keep file selected until modal is closed
         setUploadStatus('success');
@@ -81,7 +75,6 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
         }
       } else {
         // Show error in modal instead of alert
-        console.log('Upload failed, showing error modal...', result);
         setUploadResult(result);
         setShowResultModal(true);
         setUploadStatus('error');

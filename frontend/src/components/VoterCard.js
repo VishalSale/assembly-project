@@ -4,25 +4,29 @@ import { getDownloadPdfUrl } from '../services/api';
 import './VoterCard.css';
 
 const VoterCard = ({ voter, index }) => {
-  console.log('VoterCard rendering for voter:', voter.id);
-  
   const [shareLoading, setShareLoading] = useState(false);
   
   const handleDownload = () => {
-    console.log('Download button clicked for voter:', voter.id);
     window.open(getDownloadPdfUrl(voter.id), '_blank');
   };  
 
   const handleShare = async () => {
-    console.log('Share button clicked for voter:', voter.id);
     setShareLoading(true);
     
     try {
       const shareUrl = `${process.env.REACT_APP_API_URL}/api/share/${voter.id}`;
-      console.log('Share URL:', shareUrl);
 
       // Fetch the image
       const response = await fetch(shareUrl);
+      
+      // Handle systemPermission errors (503 status)
+      if (response.status === 503) {
+        const result = await response.json().catch(() => ({ message: 'System is temporarily unavailable' }));
+        setShareLoading(false);
+        alert(result.message || 'System is temporarily unavailable');
+        return;
+      }
+      
       if (!response.ok) {
         throw new Error('Failed to fetch image');
       }

@@ -27,9 +27,7 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      console.log('Logging out...');
       await adminApi.logout();
-      console.log('Logout successful, redirecting to login page');
       navigate('/admin/login');
     } catch (error) {
       console.error('Logout error:', error);
@@ -39,7 +37,6 @@ const AdminDashboard = () => {
   };
 
   const handleUploadSuccess = (uploadData) => {
-    console.log('CSV upload successful:', uploadData);
     // Don't switch tabs immediately - let user see the success modal first
     // The modal will handle the user experience
     

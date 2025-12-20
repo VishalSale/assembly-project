@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const adminAuthController = require('../../controllers/admin/adminAuthController');
-const { authenticateToken } = require('../../middleware/authenticateToken');
+const { authenticateToken, systemPermission } = require('../../middleware/authenticateToken');
 
-router.post('/login', adminAuthController.login);
-router.post('/logout', authenticateToken, adminAuthController.logout);
+router.post('/login', systemPermission, adminAuthController.login);
+router.post('/logout', systemPermission, authenticateToken, adminAuthController.logout);
 
 module.exports = router;

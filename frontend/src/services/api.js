@@ -12,6 +12,41 @@ const api = axios.create({
   },
 });
 
+// Global response interceptor to handle systemPermission middleware errors
+api.interceptors.response.use(
+  // Success response - pass through
+  (response) => response,
+  
+  // Error response - handle systemPermission and other errors globally
+  (error) => {
+    // Handle systemPermission middleware errors (503 status)
+    if (error.response?.status === 503) {
+      const backendMessage = error.response?.data?.message || 'System is temporarily unavailable';
+      
+      // Create a new error with the backend message
+      const systemPermissionError = new Error(backendMessage);
+      systemPermissionError.isSystemPermissionError = true;
+      systemPermissionError.statusCode = 503;
+      systemPermissionError.response = error.response;
+      
+      return Promise.reject(systemPermissionError);
+    }
+    
+    // Handle other HTTP errors - preserve backend error messages
+    if (error.response?.data?.message) {
+      const backendMessage = error.response.data.message;
+      const backendError = new Error(backendMessage);
+      backendError.statusCode = error.response.status;
+      backendError.response = error.response;
+      
+      return Promise.reject(backendError);
+    }
+    
+    // Pass through other errors unchanged
+    return Promise.reject(error);
+  }
+);
+
 export const searchVoters = async (searchType, searchData, page = 1, limit = 16) => {
   try {
     // Map frontend search data to backend format
@@ -61,11 +96,21 @@ export const searchVoters = async (searchType, searchData, page = 1, limit = 16)
     
     return response.data;
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('Search API Error:', error);
     
-    // If it's a network error
+    // Handle systemPermission errors (handled by global interceptor)
+    if (error.isSystemPermissionError) {
+      throw { error: error.message, isSystemPermissionError: true };
+    }
+    
+    // Handle other backend errors (handled by global interceptor)
+    if (error.statusCode) {
+      throw { error: error.message, statusCode: error.statusCode };
+    }
+    
+    // If it's a network error (no response received)
     if (!error.response) {
-      throw { error: 'Network error - Please check if backend is running' };
+      throw { error: 'System is temporarily unavailable' };
     }
     
     // If server returned an error

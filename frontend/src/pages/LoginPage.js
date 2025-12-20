@@ -28,13 +28,9 @@ const LoginPage = () => {
     setError('');
 
     try {
-      console.log('Attempting login with:', { email: formData.email });
-      
       const result = await adminApi.login(formData.email, formData.password);
-      console.log('Login response:', result);
 
       if (result.success) {
-        console.log('Login successful, redirecting to dashboard');
         navigate('/admin/dashboard');
       } else {
         setError(result.message || 'Invalid email or password');

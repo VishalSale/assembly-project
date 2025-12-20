@@ -1,6 +1,5 @@
 import { API_CONFIG } from './config';
-
-const API_BASE_URL = API_CONFIG.BASE_URL;
+import api from './api'; // Import the shared axios instance with global interceptors
 
 // Admin API service for handling authentication and admin operations
 class AdminApiService {
@@ -17,34 +16,38 @@ class AdminApiService {
   // Login admin user
   async login(email, password) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password })
-      });
-
-      const result = await response.json();
+      const response = await api.post('/api/admin/auth/login', { email, password });
       
-      if (result.success) {
+      if (response.data.success) {
         // Store user data and token
         const userData = {
-          id: result.user.id,
-          name: result.user.name || 'Admin User',
-          email: result.user.email,
-          role: result.user.role,
+          id: response.data.user.id,
+          name: response.data.user.name || 'Admin User',
+          email: response.data.user.email,
+          role: response.data.user.role,
           avatar: '/images/admin-avatar.png'
         };
         
         localStorage.setItem('adminUser', JSON.stringify(userData));
-        localStorage.setItem('adminToken', result.token);
+        localStorage.setItem('adminToken', response.data.token);
       }
       
-      return result;
+      return response.data;
     } catch (error) {
       console.error('Login error:', error);
-      throw { success: false, message: 'Network error. Please try again.' };
+      
+      // Handle systemPermission and other backend errors (handled by global interceptor)
+      if (error.isSystemPermissionError || error.statusCode) {
+        throw { success: false, message: error.message, isSystemPermissionError: error.isSystemPermissionError };
+      }
+      
+      // Handle axios errors
+      if (error.response?.data) {
+        throw { success: false, message: error.response.data.message || 'Login failed' };
+      }
+      
+      // Handle network errors
+      throw { success: false, message: error.message || 'Network error. Please try again.' };
     }
   }
 
@@ -54,9 +57,10 @@ class AdminApiService {
       const token = localStorage.getItem('adminToken');
       
       if (token) {
-        await fetch(`${API_BASE_URL}/api/admin/auth/logout`, {
-          method: 'POST',
-          headers: this.getAuthHeaders()
+        await api.post('/api/admin/auth/logout', {}, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         });
       }
     } catch (error) {
@@ -80,7 +84,7 @@ class AdminApiService {
       const formData = new FormData();
       formData.append('csvFile', file);
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/upload-csv`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/admin/upload-csv`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -88,17 +92,32 @@ class AdminApiService {
         body: formData
       });
 
-      const result = await response.json();
+      // Parse response
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        throw new Error(`Server error (${response.status}): ${response.statusText}`);
+      }
       
       // Handle authentication errors
       if (response.status === 401) {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminUser');
-        throw { success: false, message: 'Session expired. Please login again.', requiresLogin: true };
+        throw { success: false, message: result.message || 'Session expired. Please login again.', requiresLogin: true };
       }
       
-      // Return the result as-is (whether success or failure)
-      // The frontend will handle both success and error cases
+      // Handle systemPermission and other errors
+      if (!response.ok) {
+        const errorMessage = result.message || `Server error (${response.status}): ${response.statusText}`;
+        const error = new Error(errorMessage);
+        error.statusCode = response.status;
+        if (response.status === 503) {
+          error.isSystemPermissionError = true;
+        }
+        throw error;
+      }
+      
       return result;
     } catch (error) {
       console.error('CSV upload error:', error);
@@ -108,9 +127,9 @@ class AdminApiService {
         throw error;
       }
       
-      // If it's a JSON parsing error or network error
-      if (error instanceof SyntaxError) {
-        throw { success: false, message: 'Server response error. Please try again.' };
+      // Preserve systemPermission and other backend errors
+      if (error.isSystemPermissionError || error.statusCode) {
+        throw { success: false, message: error.message, isSystemPermissionError: error.isSystemPermissionError };
       }
       
       // If it's already a structured error response, preserve it
@@ -118,8 +137,8 @@ class AdminApiService {
         throw error;
       }
       
-      // Generic network error
-      throw { success: false, message: 'Network error. Please check your connection and try again.' };
+      // Handle network errors
+      throw { success: false, message: error.message || 'Network error. Please check your connection and try again.' };
     }
   }
 
@@ -132,16 +151,12 @@ class AdminApiService {
         throw { success: false, message: 'Authentication required', requiresLogin: true };
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/get-voters?page=${page}&limit=${limit}`, {
-        method: 'GET',
+      const response = await api.get(`/api/admin/get-voters?page=${page}&limit=${limit}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`
         }
       });
 
-      const result = await response.json();
-      
       // Handle authentication errors
       if (response.status === 401) {
         localStorage.removeItem('adminToken');
@@ -149,13 +164,27 @@ class AdminApiService {
         throw { success: false, message: 'Session expired. Please login again.', requiresLogin: true };
       }
       
-      return result;
+      return response.data;
     } catch (error) {
       console.error('Get voter data error:', error);
+      
+      // Handle specific error types
       if (error.requiresLogin) {
         throw error;
       }
-      throw { success: false, message: 'Failed to fetch voter data.' };
+      
+      // Handle systemPermission and other backend errors (handled by global interceptor)
+      if (error.isSystemPermissionError || error.statusCode) {
+        throw { success: false, message: error.message, isSystemPermissionError: error.isSystemPermissionError };
+      }
+      
+      // Handle axios errors
+      if (error.response?.data) {
+        throw { success: false, message: error.response.data.message || 'Failed to fetch voter data' };
+      }
+      
+      // Handle network errors
+      throw { success: false, message: error.message || 'Failed to fetch voter data.' };
     }
   }
 
