@@ -125,7 +125,7 @@ export const searchVoters = async (searchType, searchData, page = 1, limit = 16)
     
     // If it's a network error (no response received)
     if (!error.response) {
-      throw { error: 'System is temporarily unavailable' };
+      throw { error: UI_MESSAGES.ERROR.NETWORK_ERROR };
     }
     
     // If server returned an error

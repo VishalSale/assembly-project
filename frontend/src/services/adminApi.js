@@ -48,7 +48,7 @@ class AdminApiService {
       }
       
       // Handle network errors
-      throw { success: false, message: error.message || 'Network error. Please try again.' };
+      throw { success: false, message: error.message || UI_MESSAGES.ERROR.NETWORK_ERROR };
     }
   }
 

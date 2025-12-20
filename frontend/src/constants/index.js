@@ -85,7 +85,7 @@ export const UI_MESSAGES = {
         NETWORK_ERROR: 'Network error. Please check your connection and try again.',
         MODAL_TITLE: 'Upload Failed',
         MODAL_DESCRIPTION: 'There was an issue with your CSV file',
-        LOGIN_FAILED: 'Login failed. Please check your connection and try again.',
+        LOGIN_FAILED: 'Invalid email or password',
         LOGOUT_FAILED: 'Logout failed, but redirecting anyway.',
         SHARE_FAILED: 'Share failed. Opening image in new tab as fallback.'
     },
@@ -97,7 +97,8 @@ export const UI_MESSAGES = {
         PDF_GENERATING: 'Generating PDF download...',
         SHARE_PREPARING: 'Preparing voter information for sharing...',
         PAGE_SIZE_CHANGED: 'Changed page size to {size} records per page.',
-        WELCOME_BACK: 'Welcome back, {name}!'
+        WELCOME_BACK: 'Welcome back, {name}!',
+        LOGGING_IN: 'Logging in...'
     },
     WARNING: {
         FIRST_NAME_REQUIRED: 'Please enter at least the first name to search.',

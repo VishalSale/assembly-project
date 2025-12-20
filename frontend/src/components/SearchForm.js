@@ -193,7 +193,7 @@ const SearchForm = ({ onSearch, loading }) => {
 
         <button type="submit" className="submit-button" disabled={loading}>
           <FiSearch />
-          <span>{loading ? 'Searching...' : 'Search'}</span>
+          <span>{loading ? UI_MESSAGES.INFO.SEARCHING : 'Search'}</span>
         </button>
       </form>
     </div>

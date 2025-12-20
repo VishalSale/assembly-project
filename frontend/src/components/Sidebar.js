@@ -1,17 +1,18 @@
 import React from 'react';
 import { FiUser, FiUpload, FiLogOut, FiMail, FiDatabase, FiX } from 'react-icons/fi';
+import { ADMIN_CONFIG } from '../constants';
 import './Sidebar.css';
 
 const Sidebar = ({ user, onLogout, activeTab, onTabChange, isOpen, onClose }) => {
   const menuItems = [
     {
-      id: 'upload',
+      id: ADMIN_CONFIG.TABS.UPLOAD,
       label: 'Upload Data',
       icon: <FiUpload />,
       description: 'Upload CSV files'
     },
     {
-      id: 'database',
+      id: ADMIN_CONFIG.TABS.DATABASE,
       label: 'Voter Database',
       icon: <FiDatabase />,
       description: 'View voter records'

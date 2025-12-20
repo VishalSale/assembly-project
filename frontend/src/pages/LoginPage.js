@@ -36,7 +36,7 @@ const LoginPage = () => {
         showSuccess(UI_MESSAGES.SUCCESS.LOGIN_SUCCESS);
         navigate(ROUTES.ADMIN.DASHBOARD);
       } else {
-        const errorMessage = result.message || 'Invalid email or password';
+        const errorMessage = result.message || UI_MESSAGES.ERROR.LOGIN_FAILED;
         setError(errorMessage);
         showAuthError(errorMessage);
       }
@@ -132,7 +132,7 @@ const LoginPage = () => {
               className="login-button"
               disabled={loading}
             >
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? UI_MESSAGES.INFO.LOGGING_IN : 'Login'}
             </button>
           </form>
 
