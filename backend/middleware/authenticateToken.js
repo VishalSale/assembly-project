@@ -31,8 +31,7 @@ const authenticateToken = async (req, res, next) => {
 let cachedPermission = null;
 let lastFetchedAt = 0;
 // Set cache TTL here (ms)
-// 1000 = 1 sec for testing, 600000 = 10 min for production
-const PERMISSION_CACHE_TTL = 1000;
+const PERMISSION_CACHE_TTL = 6000000;
 
 const systemPermission = async (req, res, next) => {
     try {
