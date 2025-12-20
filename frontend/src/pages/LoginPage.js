@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiUser, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { adminApi } from '../services/adminApi';
 import { showSuccess, showError, showAuthError } from '../services/toastService';
+import { UI_MESSAGES, ROUTES } from '../constants';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -32,8 +33,8 @@ const LoginPage = () => {
       const result = await adminApi.login(formData.email, formData.password);
 
       if (result.success) {
-        showSuccess('Login successful! Welcome to admin dashboard.');
-        navigate('/admin/dashboard');
+        showSuccess(UI_MESSAGES.SUCCESS.LOGIN_SUCCESS);
+        navigate(ROUTES.ADMIN.DASHBOARD);
       } else {
         const errorMessage = result.message || 'Invalid email or password';
         setError(errorMessage);
@@ -41,7 +42,7 @@ const LoginPage = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      const errorMessage = err.message || 'Login failed. Please check your connection and try again.';
+      const errorMessage = err.message || UI_MESSAGES.ERROR.LOGIN_FAILED;
       setError(errorMessage);
       showError(errorMessage);
     } finally {

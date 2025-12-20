@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { searchVoters } from '../services/api';
 import { showError, showInfo, showSuccess } from '../services/toastService';
+import { UI_MESSAGES, ROUTES } from '../constants';
 import VoterCard from '../components/VoterCard';
 import Pagination from '../components/Pagination';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -26,7 +27,7 @@ const ResultsPage = () => {
 
   useEffect(() => {
     if (!searchType || !searchData) {
-      navigate('/');
+      navigate(ROUTES.HOME);
       return;
     }
     setIsInitialSearch(true);
@@ -46,7 +47,7 @@ const ResultsPage = () => {
         if (response.data.length > 0) {
           showSuccess(`Found ${response.pagination.totalRecords} voter${response.pagination.totalRecords !== 1 ? 's' : ''} matching your search.`);
         } else {
-          showInfo('No voters found matching your search criteria. Try adjusting your search terms.');
+          showInfo(UI_MESSAGES.WARNING.NO_RESULTS);
         }
         setIsInitialSearch(false);
       }
@@ -66,7 +67,7 @@ const ResultsPage = () => {
   };
 
   const handleBackToSearch = () => {
-    navigate('/');
+    navigate(ROUTES.HOME);
   };
 
   if (loading) {

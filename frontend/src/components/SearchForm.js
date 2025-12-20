@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FiUser, FiCreditCard, FiPhone, FiSearch } from 'react-icons/fi';
 import { showWarning, showInfo } from '../services/toastService';
+import { UI_MESSAGES } from '../constants';
 import './SearchForm.css';
 
 const SearchForm = ({ onSearch, loading }) => {
@@ -36,7 +37,7 @@ const SearchForm = ({ onSearch, loading }) => {
         };
         isValid = formData.firstname.trim().length > 0;
         if (!isValid) {
-          showWarning('Please enter at least the first name to search.');
+          showWarning(UI_MESSAGES.WARNING.FIRST_NAME_REQUIRED);
           return;
         }
         break;
@@ -44,7 +45,7 @@ const SearchForm = ({ onSearch, loading }) => {
         searchData = { epic: formData.epic };
         isValid = formData.epic.trim().length > 0;
         if (!isValid) {
-          showWarning('Please enter an EPIC number to search.');
+          showWarning(UI_MESSAGES.WARNING.EPIC_REQUIRED);
           return;
         }
         break;
@@ -52,7 +53,7 @@ const SearchForm = ({ onSearch, loading }) => {
         searchData = { mobile: formData.mobile };
         isValid = formData.mobile.trim().length > 0;
         if (!isValid) {
-          showWarning('Please enter a mobile number to search.');
+          showWarning(UI_MESSAGES.WARNING.MOBILE_REQUIRED);
           return;
         }
         break;
@@ -60,16 +61,16 @@ const SearchForm = ({ onSearch, loading }) => {
         searchData = { address: formData.address };
         isValid = formData.address.trim().length > 0;
         if (!isValid) {
-          showWarning('Please enter an address to search.');
+          showWarning(UI_MESSAGES.WARNING.ADDRESS_REQUIRED);
           return;
         }
         break;
       default:
-        showWarning('Please select a search type.');
+        showWarning(UI_MESSAGES.WARNING.SELECT_SEARCH_TYPE);
         return;
     }
 
-    showInfo('Starting search...');
+    showInfo(UI_MESSAGES.INFO.SEARCHING);
     onSearch(activeTab, searchData);
   };
 

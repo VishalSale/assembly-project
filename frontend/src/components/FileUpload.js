@@ -2,8 +2,8 @@ import React, { useState, useRef } from 'react';
 import { FiUpload, FiFile, FiCheck, FiX, FiAlertCircle } from 'react-icons/fi';
 import { adminApi } from '../services/adminApi';
 import { showSuccess, showError, showLoading, updateToast, showSessionExpired, showInfo } from '../services/toastService';
+import { VOTER_FIELDS, UPLOAD_CONFIG, UI_MESSAGES, SAMPLE_CSV, ROUTES } from '../constants';
 import UploadResultModal from './UploadResultModal';
-import { VOTER_FIELDS, UPLOAD_CONFIG, UI_MESSAGES, SAMPLE_CSV } from '../constants';
 import './FileUpload.css';
 
 const FileUpload = ({ onUploadSuccess, onViewData }) => {
@@ -20,7 +20,7 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
     if (file && UPLOAD_CONFIG.ALLOWED_MIME_TYPES.includes(file.type)) {
       setSelectedFile(file);
       setUploadStatus(null);
-      showSuccess(`File "${file.name}" selected successfully!`);
+      showSuccess(UI_MESSAGES.SUCCESS.FILE_SELECTED.replace('{name}', file.name));
     } else {
       setUploadStatus('error');
       setSelectedFile(null);
@@ -61,14 +61,14 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
     setUploadStatus(null);
 
     // Show loading toast
-    const toastId = showLoading('Uploading and processing CSV file...');
+    const toastId = showLoading(UI_MESSAGES.UPLOAD.PROCESSING);
 
     try {
       const result = await adminApi.uploadCsv(selectedFile);
 
       if (result.success) {
         // Update loading toast to success
-        updateToast(toastId, 'success', 'File uploaded successfully!');
+        updateToast(toastId, 'success', UI_MESSAGES.SUCCESS.UPLOAD_SUCCESS);
 
         // Show custom modal with detailed results FIRST
         setUploadResult(result);
@@ -83,7 +83,7 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
         }
       } else {
         // Update loading toast to error
-        updateToast(toastId, 'error', 'Upload failed. Please check your file.');
+        updateToast(toastId, 'error', UI_MESSAGES.UPLOAD.UPLOAD_FAILED_CHECK);
 
         // Show error in modal instead of alert
         setUploadResult(result);
@@ -95,9 +95,9 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
       setUploadStatus('error');
 
       if (error.requiresLogin) {
-        updateToast(toastId, 'warning', 'Session expired. Please login again.');
+        updateToast(toastId, 'warning', UI_MESSAGES.ERROR.SESSION_EXPIRED);
         showSessionExpired();
-        window.location.href = '/admin/login';
+        window.location.href = ROUTES.ADMIN.LOGIN;
       } else {
         // Update loading toast to error
         updateToast(toastId, 'error', error.message || 'Upload failed. Please try again.');
@@ -120,7 +120,7 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
   const handleRemoveFile = () => {
     setSelectedFile(null);
     setUploadStatus(null);
-    showInfo('File removed. You can select a new file.');
+    showInfo(UI_MESSAGES.UPLOAD.FILE_REMOVED);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }

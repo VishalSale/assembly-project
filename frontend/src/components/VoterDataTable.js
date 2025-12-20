@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiSearch, FiDownload, FiEye, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { adminApi } from '../services/adminApi';
 import { showSuccess, showError, showInfo, showSessionExpired } from '../services/toastService';
+import { UI_MESSAGES, TABLE_CONFIG, ROUTES } from '../constants';
 import NotificationModal from './NotificationModal';
-import { UI_MESSAGES, TABLE_CONFIG } from '../constants';
 import './VoterDataTable.css';
 
 const VoterDataTable = () => {
@@ -55,7 +55,7 @@ const VoterDataTable = () => {
 
       if (err.requiresLogin) {
         showSessionExpired();
-        window.location.href = '/admin/login';
+        window.location.href = ROUTES.ADMIN.LOGIN;
       }
     } finally {
       setLoading(false);
@@ -77,7 +77,7 @@ const VoterDataTable = () => {
 
   // Handle refresh
   const handleRefresh = () => {
-    showInfo('Refreshing voter data...');
+    showInfo(UI_MESSAGES.INFO.REFRESHING);
     fetchVoterData(currentPage);
   };
 
@@ -97,7 +97,7 @@ const VoterDataTable = () => {
   // Handle export (placeholder for future implementation)
   const handleExport = () => {
     setShowNotification(true);
-    showInfo('Export feature will be available soon!');
+    showInfo(UI_MESSAGES.INFO.EXPORT_SOON);
   };
 
   const closeNotification = () => {

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { API_CONFIG } from './config';
 import { showNetworkError, showSessionExpired, showError } from './toastService';
+import { API_ENDPOINTS } from '../constants';
 
 // Use API_BASE_URL from config
 const API_BASE_URL = API_CONFIG.BASE_URL;
@@ -100,7 +101,7 @@ export const searchVoters = async (searchType, searchData, page = 1, limit = 16)
       limit
     };
 
-    const response = await api.get('/api/search', { params });
+    const response = await api.get(API_ENDPOINTS.PUBLIC.SEARCH, { params });
     
     // Check if response is valid JSON with expected structure
     if (!response.data || typeof response.data !== 'object') {
@@ -138,7 +139,7 @@ export const searchVoters = async (searchType, searchData, page = 1, limit = 16)
 };
 
 export const getDownloadPdfUrl = (voterId) => {
-  return `${API_BASE_URL}/api/download-pdf/${voterId}`;
+  return `${API_BASE_URL}${API_ENDPOINTS.PUBLIC.DOWNLOAD_PDF(voterId)}`;
 };
 
 export const getWhatsAppUrl = (mobile, voterData) => {

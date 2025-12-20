@@ -1,4 +1,5 @@
 import { API_CONFIG } from './config';
+import { STORAGE_KEYS, UI_MESSAGES, API_ENDPOINTS } from '../constants';
 import api from './api'; // Import the shared axios instance with global interceptors
 
 // Admin API service for handling authentication and admin operations
@@ -6,7 +7,7 @@ class AdminApiService {
   
   // Get auth headers with token
   getAuthHeaders() {
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
     return {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -16,7 +17,7 @@ class AdminApiService {
   // Login admin user
   async login(email, password) {
     try {
-      const response = await api.post('/api/admin/auth/login', { email, password });
+      const response = await api.post(API_ENDPOINTS.ADMIN.AUTH.LOGIN, { email, password });
       
       if (response.data.success) {
         // Store user data and token
@@ -28,8 +29,8 @@ class AdminApiService {
           avatar: '/images/admin-avatar.png'
         };
         
-        localStorage.setItem('adminUser', JSON.stringify(userData));
-        localStorage.setItem('adminToken', response.data.token);
+        localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(userData));
+        localStorage.setItem(STORAGE_KEYS.ADMIN_TOKEN, response.data.token);
       }
       
       return response.data;
@@ -54,10 +55,10 @@ class AdminApiService {
   // Logout admin user
   async logout() {
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
       
       if (token) {
-        await api.post('/api/admin/auth/logout', {}, {
+        await api.post(API_ENDPOINTS.ADMIN.AUTH.LOGOUT, {}, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -67,24 +68,24 @@ class AdminApiService {
       console.error('Logout error:', error);
     } finally {
       // Always clear local storage
-      localStorage.removeItem('adminUser');
-      localStorage.removeItem('adminToken');
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_USER);
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
     }
   }
 
   // Upload CSV file
   async uploadCsv(file) {
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
       
       if (!token) {
-        throw { success: false, message: 'Authentication required' };
+        throw { success: false, message: UI_MESSAGES.ERROR.UNAUTHORIZED };
       }
 
       const formData = new FormData();
       formData.append('csvFile', file);
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/api/admin/upload-csv`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ADMIN.DATA.UPLOAD_CSV}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -102,9 +103,9 @@ class AdminApiService {
       
       // Handle authentication errors
       if (response.status === 401) {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUser');
-        throw { success: false, message: result.message || 'Session expired. Please login again.', requiresLogin: true };
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_USER);
+        throw { success: false, message: result.message || UI_MESSAGES.ERROR.SESSION_EXPIRED, requiresLogin: true };
       }
       
       // Handle systemPermission and other errors
@@ -138,20 +139,20 @@ class AdminApiService {
       }
       
       // Handle network errors
-      throw { success: false, message: error.message || 'Network error. Please check your connection and try again.' };
+      throw { success: false, message: error.message || UI_MESSAGES.ERROR.NETWORK_ERROR };
     }
   }
 
   // Get voter data (for admin dashboard)
   async getVoterData(page = 1, limit = 10) {
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
       
       if (!token) {
-        throw { success: false, message: 'Authentication required', requiresLogin: true };
+        throw { success: false, message: UI_MESSAGES.ERROR.UNAUTHORIZED, requiresLogin: true };
       }
 
-      const response = await api.get(`/api/admin/get-voters?page=${page}&limit=${limit}`, {
+      const response = await api.get(`${API_ENDPOINTS.ADMIN.DATA.GET_VOTERS}?page=${page}&limit=${limit}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -159,9 +160,9 @@ class AdminApiService {
 
       // Handle authentication errors
       if (response.status === 401) {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUser');
-        throw { success: false, message: 'Session expired. Please login again.', requiresLogin: true };
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_USER);
+        throw { success: false, message: UI_MESSAGES.ERROR.SESSION_EXPIRED, requiresLogin: true };
       }
       
       return response.data;
@@ -184,20 +185,20 @@ class AdminApiService {
       }
       
       // Handle network errors
-      throw { success: false, message: error.message || 'Failed to fetch voter data.' };
+      throw { success: false, message: error.message || UI_MESSAGES.VALIDATION.MESSAGES.NETWORK_ERROR };
     }
   }
 
   // Check if user is authenticated
   isAuthenticated() {
-    const token = localStorage.getItem('adminToken');
-    const user = localStorage.getItem('adminUser');
+    const token = localStorage.getItem(STORAGE_KEYS.ADMIN_TOKEN);
+    const user = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
     return !!(token && user);
   }
 
   // Get current user data
   getCurrentUser() {
-    const userData = localStorage.getItem('adminUser');
+    const userData = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
     return userData ? JSON.parse(userData) : null;
   }
 }

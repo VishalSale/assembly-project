@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUpload, FiDatabase, FiUsers, FiMenu } from 'react-icons/fi';
 import { showSuccess, showError, showInfo, showSessionExpired } from '../services/toastService';
+import { UI_MESSAGES, ROUTES, ADMIN_CONFIG } from '../constants';
 import Sidebar from '../components/Sidebar';
 import FileUpload from '../components/FileUpload';
 import VoterDataTable from '../components/VoterDataTable';
@@ -11,7 +12,7 @@ import './AdminDashboard.css';
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('upload');
+  const [activeTab, setActiveTab] = useState(ADMIN_CONFIG.TABS.UPLOAD);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -19,7 +20,7 @@ const AdminDashboard = () => {
     // Check if user is authenticated
     if (!adminApi.isAuthenticated()) {
       showSessionExpired();
-      navigate('/admin/login');
+      navigate(ROUTES.ADMIN.LOGIN);
       return;
     }
 
@@ -31,13 +32,13 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     try {
       await adminApi.logout();
-      showSuccess('Logged out successfully. See you next time!');
-      navigate('/admin/login');
+      showSuccess(UI_MESSAGES.SUCCESS.LOGOUT_SUCCESS);
+      navigate(ROUTES.ADMIN.LOGIN);
     } catch (error) {
       console.error('Logout error:', error);
-      showError('Logout failed, but redirecting anyway.');
+      showError(UI_MESSAGES.ERROR.LOGOUT_FAILED);
       // Still redirect even if logout API fails
-      navigate('/admin/login');
+      navigate(ROUTES.ADMIN.LOGIN);
     }
   };
 
@@ -54,7 +55,7 @@ const AdminDashboard = () => {
 
   const handleViewUploadedData = () => {
     // Switch to database tab to show the uploaded data
-    setActiveTab('database');
+    setActiveTab(ADMIN_CONFIG.TABS.DATABASE);
   };
 
   const toggleSidebar = () => {
@@ -78,13 +79,13 @@ const AdminDashboard = () => {
 
   const tabs = [
     {
-      id: 'upload',
+      id: ADMIN_CONFIG.TABS.UPLOAD,
       label: 'Upload Data',
       icon: <FiUpload />,
       description: 'Upload CSV files to update the voter database'
     },
     {
-      id: 'database',
+      id: ADMIN_CONFIG.TABS.DATABASE,
       label: 'Voter Database',
       icon: <FiDatabase />,
       description: 'View and manage voter records'
@@ -165,7 +166,7 @@ const AdminDashboard = () => {
                 <p>{tabs.find(tab => tab.id === activeTab)?.description}</p>
               </div>
 
-              {activeTab === 'upload' && (
+              {activeTab === ADMIN_CONFIG.TABS.UPLOAD && (
                 <div className="upload-section">
                   <FileUpload
                     onUploadSuccess={handleUploadSuccess}
@@ -174,7 +175,7 @@ const AdminDashboard = () => {
                 </div>
               )}
 
-              {activeTab === 'database' && (
+              {activeTab === ADMIN_CONFIG.TABS.DATABASE && (
                 <div className="database-section">
                   <VoterDataTable key={refreshTrigger} />
                 </div>

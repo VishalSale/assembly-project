@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showInfo } from '../services/toastService';
+import { UI_MESSAGES, ROUTES } from '../constants';
 import SearchForm from '../components/SearchForm';
 import './SearchPage.css';
 
@@ -10,9 +11,9 @@ const SearchPage = () => {
 
   const handleSearch = (searchType, searchData) => {
     setLoading(true);
-    showInfo('Searching for voters...');
+    showInfo(UI_MESSAGES.INFO.SEARCHING);
     // Navigate to results page with search params
-    navigate('/results', {
+    navigate(ROUTES.RESULTS, {
       state: { searchType, searchData }
     });
   };

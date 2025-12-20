@@ -1,4 +1,5 @@
 import { toast } from 'react-toastify';
+import { UI_MESSAGES } from '../constants';
 
 // Check if device is mobile
 const isMobile = () => window.innerWidth <= 768;
@@ -76,7 +77,7 @@ export const showAuthError = (message) => {
 };
 
 // Custom toast for network errors
-export const showNetworkError = (message = 'Network error. Please check your connection.') => {
+export const showNetworkError = (message = UI_MESSAGES.ERROR.NETWORK_ERROR) => {
   showError(message, {
     toastId: 'network-error',
     autoClose: isMobile() ? 3500 : 8000
@@ -85,7 +86,7 @@ export const showNetworkError = (message = 'Network error. Please check your con
 
 // Custom toast for session expiry
 export const showSessionExpired = () => {
-  showWarning('Session expired. Please login again.', {
+  showWarning(UI_MESSAGES.ERROR.SESSION_EXPIRED, {
     toastId: 'session-expired',
     autoClose: isMobile() ? 4000 : 8000
   });
