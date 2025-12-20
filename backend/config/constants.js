@@ -123,7 +123,7 @@ const PAGINATION = {
 
 // Search Configuration
 const SEARCH = {
-  TYPES: ['name', 'epic', 'mobile', 'address'],
+  TYPES: ['name', 'epic', 'mobile'],
   DEFAULT_TYPE: 'name'
 };
 
