@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiUser, FiCreditCard, FiPhone, FiMapPin, FiSearch } from 'react-icons/fi';
+import { FiUser, FiCreditCard, FiPhone, FiSearch } from 'react-icons/fi';
 import { showWarning, showInfo } from '../services/toastService';
 import './SearchForm.css';
 
@@ -23,10 +23,10 @@ const SearchForm = ({ onSearch, loading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     let searchData = {};
     let isValid = false;
-    
+
     switch (activeTab) {
       case 'name':
         searchData = {

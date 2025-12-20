@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { FiUpload, FiFile, FiCheck, FiX, FiAlertCircle } from 'react-icons/fi';
 import { adminApi } from '../services/adminApi';
-import { showSuccess, showError, showWarning, showLoading, updateToast, showSessionExpired, showInfo } from '../services/toastService';
+import { showSuccess, showError, showLoading, updateToast, showSessionExpired, showInfo } from '../services/toastService';
 import UploadResultModal from './UploadResultModal';
 import { VOTER_FIELDS, UPLOAD_CONFIG, UI_MESSAGES, SAMPLE_CSV } from '../constants';
 import './FileUpload.css';
@@ -69,14 +69,14 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
       if (result.success) {
         // Update loading toast to success
         updateToast(toastId, 'success', 'File uploaded successfully!');
-        
+
         // Show custom modal with detailed results FIRST
         setUploadResult(result);
         setShowResultModal(true);
-        
+
         // Update status but keep file selected until modal is closed
         setUploadStatus('success');
-        
+
         // Notify parent component about successful upload
         if (onUploadSuccess) {
           onUploadSuccess(result.data);
@@ -84,7 +84,7 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
       } else {
         // Update loading toast to error
         updateToast(toastId, 'error', 'Upload failed. Please check your file.');
-        
+
         // Show error in modal instead of alert
         setUploadResult(result);
         setShowResultModal(true);
@@ -93,7 +93,7 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
     } catch (error) {
       console.error('Upload error:', error);
       setUploadStatus('error');
-      
+
       if (error.requiresLogin) {
         updateToast(toastId, 'warning', 'Session expired. Please login again.');
         showSessionExpired();
@@ -101,7 +101,7 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
       } else {
         // Update loading toast to error
         updateToast(toastId, 'error', error.message || 'Upload failed. Please try again.');
-        
+
         // Show error in modal instead of alert
         const errorResult = {
           success: false,
@@ -129,7 +129,7 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
   const handleCloseModal = () => {
     setShowResultModal(false);
     setUploadResult(null);
-    
+
     // Reset file selection when modal is closed
     setSelectedFile(null);
     setUploadStatus(null);
@@ -153,7 +153,7 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
         <p>{UI_MESSAGES.UPLOAD.DESCRIPTION}</p>
       </div>
 
-      <div 
+      <div
         className={`upload-area ${dragActive ? 'drag-active' : ''}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -186,8 +186,8 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
                 <h4>{selectedFile.name}</h4>
                 <p>{formatFileSize(selectedFile.size)}</p>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="remove-file"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -203,7 +203,7 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
 
       {selectedFile && (
         <div className="upload-actions">
-          <button 
+          <button
             className="upload-button"
             onClick={handleUpload}
             disabled={uploading}
@@ -264,14 +264,14 @@ const FileUpload = ({ onUploadSuccess, onViewData }) => {
             ))}
           </div>
         </div>
-        
+
         <div className="sample-format">
           <h4>{UI_MESSAGES.REQUIREMENTS.SAMPLE_FORMAT_TITLE}</h4>
           <code>
-            {SAMPLE_CSV.HEADERS}<br/>
+            {SAMPLE_CSV.HEADERS}<br />
             {SAMPLE_CSV.ROWS.map((row, index) => (
               <React.Fragment key={index}>
-                {row}<br/>
+                {row}<br />
               </React.Fragment>
             ))}
           </code>

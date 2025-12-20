@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUpload, FiDatabase, FiUsers, FiMenu, FiBell, FiSettings } from 'react-icons/fi';
+import { FiUpload, FiDatabase, FiUsers, FiMenu } from 'react-icons/fi';
 import { showSuccess, showError, showInfo, showSessionExpired } from '../services/toastService';
 import Sidebar from '../components/Sidebar';
 import FileUpload from '../components/FileUpload';
@@ -22,7 +22,7 @@ const AdminDashboard = () => {
       navigate('/admin/login');
       return;
     }
-    
+
     const userData = adminApi.getCurrentUser();
     setUser(userData);
     showInfo(`Welcome back, ${userData?.name || 'Admin'}!`);
@@ -44,10 +44,10 @@ const AdminDashboard = () => {
   const handleUploadSuccess = (uploadData) => {
     // Don't switch tabs immediately - let user see the success modal first
     // The modal will handle the user experience
-    
+
     // Trigger refresh of voter data table for when user switches to database tab
     setRefreshTrigger(prev => prev + 1);
-    
+
     // Show additional toast for quick feedback
     showSuccess(`Upload completed! ${uploadData.total_processed || 0} records processed.`);
   };
@@ -93,15 +93,15 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-dashboard">
-      <Sidebar 
-        user={user} 
+      <Sidebar
+        user={user}
         onLogout={handleLogout}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         isOpen={sidebarOpen}
         onClose={closeSidebar}
       />
-      
+
       <div className="main-content">
         {/* Mobile Header */}
         <div className="mobile-header">
@@ -127,7 +127,7 @@ const AdminDashboard = () => {
             <h1>Admin Dashboard</h1>
             <p>Manage voter data and system settings</p>
           </div>
-          
+
           <div className="header-actions">
             <div className="user-info">
               <FiUsers className="user-icon" />
@@ -143,7 +143,7 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="dashboard-content">
           <div className="content-tabs">
             <div className="tab-navigation">
@@ -158,22 +158,22 @@ const AdminDashboard = () => {
                 </button>
               ))}
             </div>
-            
+
             <div className="tab-content">
               <div className="tab-header">
                 <h2>{tabs.find(tab => tab.id === activeTab)?.label}</h2>
                 <p>{tabs.find(tab => tab.id === activeTab)?.description}</p>
               </div>
-              
+
               {activeTab === 'upload' && (
                 <div className="upload-section">
-                  <FileUpload 
-                    onUploadSuccess={handleUploadSuccess} 
+                  <FileUpload
+                    onUploadSuccess={handleUploadSuccess}
                     onViewData={handleViewUploadedData}
                   />
                 </div>
               )}
-              
+
               {activeTab === 'database' && (
                 <div className="database-section">
                   <VoterDataTable key={refreshTrigger} />

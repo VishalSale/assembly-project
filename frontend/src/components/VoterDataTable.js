@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiRefreshCw, FiSearch, FiDownload, FiEye, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { adminApi } from '../services/adminApi';
-import { showSuccess, showError, showInfo, showWarning, showSessionExpired } from '../services/toastService';
+import { showSuccess, showError, showInfo, showSessionExpired } from '../services/toastService';
 import NotificationModal from './NotificationModal';
 import { UI_MESSAGES, TABLE_CONFIG } from '../constants';
 import './VoterDataTable.css';
@@ -21,13 +21,13 @@ const VoterDataTable = () => {
   const fetchVoterData = async (page = 1) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await adminApi.getVoterData(page, limit);
-      
+
       if (result.success) {
         setVoters(result.data || []);
-        
+
         // Use the new pagination structure from backend
         if (result.pagination) {
           setCurrentPage(result.pagination.currentPage);
@@ -39,7 +39,7 @@ const VoterDataTable = () => {
           setTotalPages(1);
           setCurrentPage(1);
         }
-        
+
         // Show success toast
         showSuccess(`Loaded ${result.data?.length || 0} voter records successfully.`);
       } else {
@@ -52,7 +52,7 @@ const VoterDataTable = () => {
       const errorMessage = err.message || 'Failed to fetch voter data';
       setError(errorMessage);
       showError(errorMessage);
-      
+
       if (err.requiresLogin) {
         showSessionExpired();
         window.location.href = '/admin/login';
@@ -84,7 +84,7 @@ const VoterDataTable = () => {
   // Filter voters based on search term
   const filteredVoters = voters.filter(voter => {
     if (!searchTerm) return true;
-    
+
     const searchLower = searchTerm.toLowerCase();
     return (
       voter.full_name?.toLowerCase().includes(searchLower) ||
@@ -143,7 +143,7 @@ const VoterDataTable = () => {
           <h2>Voter Database</h2>
           <p className="record-count">Total Records: {totalRecords}</p>
         </div>
-        
+
         <div className="header-actions">
           <div className="search-box">
             <FiSearch className="search-icon" />
@@ -169,12 +169,12 @@ const VoterDataTable = () => {
               ))}
             </select>
           </div>
-          
+
           <button onClick={handleRefresh} className="action-button refresh-btn">
             <FiRefreshCw />
             Refresh
           </button>
-          
+
           <button onClick={handleExport} className="action-button export-btn">
             <FiDownload />
             Export
@@ -239,7 +239,7 @@ const VoterDataTable = () => {
                 <FiChevronLeft />
                 Previous
               </button>
-              
+
               <div className="pagination-info">
                 <div className="page-info">
                   <span>Page {currentPage} of {totalPages}</span>
@@ -250,7 +250,7 @@ const VoterDataTable = () => {
                   </span>
                 </div>
               </div>
-              
+
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
