@@ -37,14 +37,27 @@ api.interceptors.response.use(
       return Promise.reject(systemPermissionError);
     }
 
-    // Handle authentication errors (401, 403)
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    // Handle permission denied errors (403 status)
+    if (error.response?.status === 403) {
+      const backendMessage = error.response?.data?.message || 'Access denied';
+      showError(backendMessage);
+      
+      const permissionError = new Error(backendMessage);
+      permissionError.statusCode = 403;
+      permissionError.response = error.response;
+
+      return Promise.reject(permissionError);
+    }
+
+    // Handle authentication errors (401)
+    if (error.response?.status === 401) {
       showSessionExpired();
     }
 
-    // Handle network errors
+    // Handle network errors (no response received)
     if (!error.response) {
       showNetworkError();
+      return Promise.reject(error);
     }
 
     // Handle other HTTP errors - preserve backend error messages
